@@ -1,0 +1,20 @@
+== RUBY SCRIPT DATABASE FILL FOR NEO4J STATES TRACKER
+
+*Requirements*:
+
+- Ruby 2.4.0
+- Bundle
+
+
+*Installation*:
+
+-----------
+bundle install
+-----------
+
+
+*Run*:
+
+-----------
+ruby load_data.rb
+-----------
