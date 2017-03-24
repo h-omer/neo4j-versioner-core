@@ -1,22 +1,21 @@
-== RUBY SCRIPT DATABASE FILL FOR NEO4J GRAPH VERSIONER
+== JAVA SCRIPT DATABASE FILL FOR NEO4J GRAPH VERSIONER
 
 *Requirements*:
 
-- Ruby 2.4.0
-- Bundle
+- Java 1.8
 
 
 *Installation*:
 
 -----------
-bundle install
+./gradlew build
 -----------
 
 
 *Run*:
 
 -----------
-ruby load_data.rb
+java -jar build/libs/neo4j-graph-versioner-data-loader-1.0.0.jar
 -----------
 
 WARNING: Change the database connection password if different from _password_

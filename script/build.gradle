@@ -1,0 +1,34 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = 'it.homer.neo4j.graphversioner.dataloader.Main'
+
+// tag::repositories[]
+repositories {
+    mavenCentral()
+}
+// end::repositories[]
+
+// tag::dependencies[]
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    compile 'org.neo4j.driver:neo4j-java-driver:1.2.0'
+    testCompile "junit:junit:4.12"
+}
+// end::dependencies[]
+
+// tag::wrapper[]
+// end::wrapper[]
+
+// tag::jar[]
+jar {
+    baseName = 'neo4j-graph-versioner-data-loader'
+    version =  '1.0.0'
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+// end::jar[]
