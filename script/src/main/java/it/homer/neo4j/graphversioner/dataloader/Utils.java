@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 
 public class Utils {
-	public static Integer DEFAULT_ENTITY_NUMBER = 10;
+ 	public static Integer DEFAULT_ENTITY_NUMBER = 10;
 	public static Integer DEFAULT_STATES_NUMBER = 100;
 
 	private static SecureRandom random = new SecureRandom();

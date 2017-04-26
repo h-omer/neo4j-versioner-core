@@ -31,10 +31,10 @@ public class InitTest {
             Session session = driver.session();
 
             // When
-            StatementResult result = session.run( "CALL graph.versioner.init('Entity', ['provaE1','provaE2'], ['provaS1','provaS2'])" );
+            StatementResult result = session.run( "CALL graph.versioner.init('Entity', [], [])" );
 
             // Then
-            assertThat( result.single().get( "id" ).asLong(), equalTo(1l) );
+            assertThat( result.single().get( "id" ).asLong(), equalTo(0l) );
         }
     }
 
