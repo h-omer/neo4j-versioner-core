@@ -5,10 +5,7 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.procedure.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -19,18 +16,27 @@ public class Init {
     @Context
     public GraphDatabaseService db;
 
+    public static final String STATE_LABEL = "State";
+    public static final Map<String, Object> DEFAULT_MAP = new HashMap<String, Object>();
+
     @Procedure(value = "graph.versioner.init", mode = Mode.WRITE)
     @Description("graph.versioner.init(entityLabel, ['entityProp1','entityProp1',...], ['stateProp1','stateProp1',...]) - Create an Entity node with an initial State.")
     public Stream<Output> init(
             @Name("entityLabel") String entityLabel,
-            @Name("entityProps") List<Map<String, Object>> entityProps,
-            @Name("stateProps") List<Map<String, Object>> stateProps) {
+            @Name(value = "entityProps", defaultValue = "{}") Map<String, Object> entityProps,
+            @Name(value = "stateProps", defaultValue = "{}") Map<String, Object> stateProps) {
 
         List<String> labelNames = new ArrayList<String>();
         labelNames.add(entityLabel);
-        Node node = db.createNode(this.labels(labelNames));
+        Node entity = this.setProperties(db.createNode(this.labels(labelNames)), entityProps);
 
-        return Stream.of(new Output(node.getId()));
+        if (!stateProps.isEmpty()) {
+            labelNames = new ArrayList<String>();
+            labelNames.add(STATE_LABEL);
+            Node state = this.setProperties(db.createNode(this.labels(labelNames)), stateProps);
+        }
+
+        return Stream.of(new Output(entity.getId()));
     }
 
     public class Output {
@@ -55,5 +61,13 @@ public class Init {
             return labels;
         }
         return new Label[]{Label.label(labelNames.toString())};
+    }
+
+    private Node setProperties(Node node, Map<String, Object> props) {
+        for (Map.Entry<String, Object> entry : props.entrySet()) {
+            node.setProperty(entry.getKey(), entry.getValue());
+        }
+
+        return node;
     }
 }
