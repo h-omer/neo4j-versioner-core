@@ -3,6 +3,7 @@ package org.homer.graph.versioner;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.procedure.*;
 
 import java.util.*;
@@ -17,7 +18,10 @@ public class Init {
     public GraphDatabaseService db;
 
     public static final String STATE_LABEL = "State";
-    public static final Map<String, Object> DEFAULT_MAP = new HashMap<String, Object>();
+    public static final String CURRENT_TYPE = "CURRENT";
+    public static final String HAS_NEXT_TYPE = "HAS_NEXT";
+    public static final String DATE_PROP = "date";
+    public static final String START_DATE_PROP = "startDate";
 
     @Procedure(value = "graph.versioner.init", mode = Mode.WRITE)
     @Description("graph.versioner.init(entityLabel, ['entityProp1','entityProp1',...], ['stateProp1','stateProp1',...]) - Create an Entity node with an initial State.")
@@ -34,17 +38,13 @@ public class Init {
             labelNames = new ArrayList<String>();
             labelNames.add(STATE_LABEL);
             Node state = this.setProperties(db.createNode(this.labels(labelNames)), stateProps);
+
+            long date = Calendar.getInstance().getTimeInMillis();
+            entity.createRelationshipTo(state, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, date);
+            entity.createRelationshipTo(state, RelationshipType.withName(HAS_NEXT_TYPE)).setProperty(START_DATE_PROP, date);
         }
 
         return Stream.of(new Output(entity.getId()));
-    }
-
-    public class Output {
-        public long id;
-
-        public Output(long id) {
-            this.id = id;
-        }
     }
 
     private Label[] labels(Object labelNames) {

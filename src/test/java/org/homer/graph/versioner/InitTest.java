@@ -85,12 +85,16 @@ public class InitTest {
             StatementResult entityResult = session.run("MATCH (e:Entity) RETURN properties(e) as props");
             StatementResult stateResult = session.run("MATCH (s:State) RETURN s");
             StatementResult stateProps = session.run("MATCH (s:State) RETURN properties(s) as props");
+            StatementResult currentResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(e) as id");
+            StatementResult hasNextResult = session.run("MATCH (e:Entity)-[:HAS_NEXT]->(s:State) RETURN id(e) as id");
 
             // Then
             assertThat( result.single().get( "id" ).asLong(), equalTo(0l) );
             assertThat( entityResult.single().get( "props" ).asMap().isEmpty(), equalTo(false));
             assertThat( stateResult.single().get( "s" ).asNode().id(), equalTo(1l));
             assertThat( stateProps.single().get( "props" ).asMap().isEmpty(), equalTo(false));
+            assertThat( currentResult.single().get( "id" ).asLong(), equalTo(0l) );
+            assertThat( hasNextResult.single().get( "id" ).asLong(), equalTo(0l) );
 
             // Closing session
             session.close();
