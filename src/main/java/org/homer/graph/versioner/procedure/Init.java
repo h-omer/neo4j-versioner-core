@@ -1,6 +1,6 @@
 package org.homer.graph.versioner.procedure;
 
-import org.homer.graph.versioner.output.NodeId;
+import org.homer.graph.versioner.output.IdOutput;
 import org.homer.graph.versioner.Utility;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 /**
- * Created by marco.falcier on 23/03/17.
+ * Init class, it contains all the Procedures needed to initialize an Entity node
  */
 public class Init {
 
@@ -19,8 +19,8 @@ public class Init {
     public GraphDatabaseService db;
 
     @Procedure(value = "graph.versioner.init", mode = Mode.WRITE)
-    @Description("graph.versioner.init(entityLabel, {key:value,...}, {key:value,...}, context) - Create an Entity node with an initial State.")
-    public Stream<NodeId> init(
+    @Description("graph.versioner.init(entityLabel, {key:value,...}, {key:value,...}, context) - Create an Entity node with an optional initial State.")
+    public Stream<IdOutput> init(
             @Name("entityLabel") String entityLabel,
             @Name(value = "entityProps", defaultValue = "{}") Map<String, Object> entityProps,
             @Name(value = "stateProps", defaultValue = "{}") Map<String, Object> stateProps,
@@ -42,9 +42,9 @@ public class Init {
 
             long date = Calendar.getInstance().getTimeInMillis();
             entity.createRelationshipTo(state, RelationshipType.withName(Utility.CURRENT_TYPE)).setProperty(Utility.DATE_PROP, date);
-            entity.createRelationshipTo(state, RelationshipType.withName(Utility.HAS_STATUS_TYPE)).setProperty(Utility.START_DATE_PROP, date);
+            entity.createRelationshipTo(state, RelationshipType.withName(Utility.HAS_STATE_TYPE)).setProperty(Utility.START_DATE_PROP, date);
         }
 
-        return Stream.of(new NodeId(entity.getId()));
+        return Stream.of(new IdOutput(entity.getId()));
     }
 }
