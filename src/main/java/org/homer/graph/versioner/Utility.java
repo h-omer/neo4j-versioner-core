@@ -19,7 +19,6 @@ public class Utility {
     public static final String DATE_PROP = "date";
     public static final String START_DATE_PROP = "startDate";
     public static final String END_DATE_PROP = "endDate";
-    public static final String CONTEXT_PROP = "context";
 
     /**
      * Sets a {@link Map} of properties to a {@link Node}

@@ -22,30 +22,30 @@ public class Init {
     public GraphDatabaseService db;
 
     @Procedure(value = "graph.versioner.init", mode = Mode.WRITE)
-    @Description("graph.versioner.init(entityLabel, {key:value,...}, {key:value,...}, context) - Create an Entity node with an optional initial State.")
+    @Description("graph.versioner.init(entityLabel, {key:value,...}, {key:value,...}, additionalLabel, date) - Create an Entity node with an optional initial State.")
     public Stream<NodeOutput> init(
             @Name("entityLabel") String entityLabel,
             @Name(value = "entityProps", defaultValue = "{}") Map<String, Object> entityProps,
             @Name(value = "stateProps", defaultValue = "{}") Map<String, Object> stateProps,
-            @Name(value = "context", defaultValue = "") String context ) {
+            @Name(value = "additionalLabel", defaultValue = "") String additionalLabel,
+            @Name(value = "date", defaultValue = "0") long date) {
 
         List<String> labelNames = new ArrayList<String>();
         labelNames.add(entityLabel);
+
         Node entity = Utility.setProperties(db.createNode(Utility.labels(labelNames)), entityProps);
 
         if (!stateProps.isEmpty()) {
             labelNames = new ArrayList<String>();
             labelNames.add(Utility.STATE_LABEL);
-            Node state = Utility.setProperties(db.createNode(Utility.labels(labelNames)), stateProps);
-            if (!context.isEmpty()) {
-                state.setProperty(Utility.CONTEXT_PROP, context);
-            } else {
-                state.setProperty(Utility.CONTEXT_PROP, "Initial State");
+            if (!additionalLabel.isEmpty()) {
+                labelNames.add(additionalLabel);
             }
+            Node state = Utility.setProperties(db.createNode(Utility.labels(labelNames)), stateProps);
 
-            long date = Calendar.getInstance().getTimeInMillis();
-            entity.createRelationshipTo(state, RelationshipType.withName(Utility.CURRENT_TYPE)).setProperty(Utility.DATE_PROP, date);
-            entity.createRelationshipTo(state, RelationshipType.withName(Utility.HAS_STATE_TYPE)).setProperty(Utility.START_DATE_PROP, date);
+            long instantDate = (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
+            entity.createRelationshipTo(state, RelationshipType.withName(Utility.CURRENT_TYPE)).setProperty(Utility.DATE_PROP, instantDate);
+            entity.createRelationshipTo(state, RelationshipType.withName(Utility.HAS_STATE_TYPE)).setProperty(Utility.START_DATE_PROP, instantDate);
         }
 
         return Stream.of(new NodeOutput(entity));

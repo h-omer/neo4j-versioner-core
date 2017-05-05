@@ -77,7 +77,6 @@ public class InitTest {
             StatementResult stateProps = session.run("MATCH (s:State) RETURN properties(s) as props");
             StatementResult currentResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(e) as id");
             StatementResult hasStatusResult = session.run("MATCH (e:Entity)-[:HAS_STATE]->(s:State) RETURN id(e) as id");
-            StatementResult contextResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) return s.context as context");
 
             // Then
             assertThat(result.single().get("node").asNode().id(), equalTo(0l));
@@ -86,12 +85,11 @@ public class InitTest {
             assertThat(stateProps.single().get("props").asMap().isEmpty(), equalTo(false));
             assertThat(currentResult.single().get("id").asLong(), equalTo(0l));
             assertThat(hasStatusResult.single().get("id").asLong(), equalTo(0l));
-            assertThat(contextResult.single().get("context").asString(), equalTo("Initial State"));
         }
     }
 
     @Test
-    public void shouldCreateAnEntityWithPropertiesWithAStateAndItsPropertiesAndAContext() throws Throwable {
+    public void shouldCreateAnEntityWithPropertiesWithAStateAndItsPropertiesWithAdditionalLabelButNoDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig())) {
@@ -99,22 +97,52 @@ public class InitTest {
             Session session = driver.session();
 
             // When
-            StatementResult result = session.run("CALL graph.versioner.init('Entity', {key:'value'}, {key:'value'}, 'context')");
+            StatementResult result = session.run("CALL graph.versioner.init('Entity', {key:'value'}, {key:'value'}, 'Error')");
             StatementResult entityResult = session.run("MATCH (e:Entity) RETURN properties(e) as props");
             StatementResult stateResult = session.run("MATCH (s:State) RETURN s");
+            Node state = stateResult.single().get("s").asNode();
             StatementResult stateProps = session.run("MATCH (s:State) RETURN properties(s) as props");
             StatementResult currentResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(e) as id");
             StatementResult hasStatusResult = session.run("MATCH (e:Entity)-[:HAS_STATE]->(s:State) RETURN id(e) as id");
-            StatementResult contextResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) return s.context as context");
 
             // Then
             assertThat(result.single().get("node").asNode().id(), equalTo(0l));
             assertThat(entityResult.single().get("props").asMap().isEmpty(), equalTo(false));
-            assertThat(stateResult.single().get("s").asNode().id(), equalTo(1l));
+            assertThat(state.id(), equalTo(1l));
             assertThat(stateProps.single().get("props").asMap().isEmpty(), equalTo(false));
             assertThat(currentResult.single().get("id").asLong(), equalTo(0l));
             assertThat(hasStatusResult.single().get("id").asLong(), equalTo(0l));
-            assertThat(contextResult.single().get("context").asString(), equalTo("context"));
+            assertThat(state.hasLabel("Error"), equalTo(true));
+        }
+    }
+
+    @Test
+    public void shouldCreateAnEntityWithPropertiesWithAStateAndItsPropertiesWithAdditionalLabelAndDate() throws Throwable {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig())) {
+            // Given
+            Session session = driver.session();
+
+            // When
+            StatementResult result = session.run("CALL graph.versioner.init('Entity', {key:'value'}, {key:'value'}, 'Error', 593920000000)");
+            StatementResult entityResult = session.run("MATCH (e:Entity) RETURN properties(e) as props");
+            StatementResult stateResult = session.run("MATCH (s:State) RETURN s");
+            Node state = stateResult.single().get("s").asNode();
+            StatementResult stateProps = session.run("MATCH (s:State) RETURN properties(s) as props");
+            StatementResult currentResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(e) as id");
+            StatementResult hasStatusResult = session.run("MATCH (e:Entity)-[:HAS_STATE]->(s:State) RETURN id(e) as id");
+            StatementResult hasStatusDateResult = session.run("MATCH (e:Entity)-[rel:CURRENT]->(s:State) RETURN rel.date as date");
+
+            // Then
+            assertThat(result.single().get("node").asNode().id(), equalTo(0l));
+            assertThat(entityResult.single().get("props").asMap().isEmpty(), equalTo(false));
+            assertThat(state.id(), equalTo(1l));
+            assertThat(stateProps.single().get("props").asMap().isEmpty(), equalTo(false));
+            assertThat(currentResult.single().get("id").asLong(), equalTo(0l));
+            assertThat(hasStatusResult.single().get("id").asLong(), equalTo(0l));
+            assertThat(state.hasLabel("Error"), equalTo(true));
+            assertThat(hasStatusDateResult.single().get("date").asLong(), equalTo(593920000000l));
         }
     }
 }

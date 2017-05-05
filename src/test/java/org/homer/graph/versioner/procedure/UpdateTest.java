@@ -29,7 +29,7 @@ public class UpdateTest {
             session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, 'context', {key:'newValue'}) YIELD node RETURN node");
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, {key:'newValue'}) YIELD node RETURN node");
             StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
             StatementResult nextResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) return s2");
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
@@ -53,7 +53,7 @@ public class UpdateTest {
             session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, 'context', {key:'newValue'}, 'Error') YIELD node RETURN node");
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, {key:'newValue'}, 'Error') YIELD node RETURN node");
             StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
             StatementResult nextResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) return s2");
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
@@ -79,7 +79,7 @@ public class UpdateTest {
             session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, 'context', {key:'newValue'}, 'Error', 593920000000) YIELD node RETURN node");
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, {key:'newValue'}, 'Error', 593920000000) YIELD node RETURN node");
             StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
             StatementResult nextResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) return s2");
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
@@ -108,7 +108,7 @@ public class UpdateTest {
             session.run("CREATE (e:Entity {key:'immutableValue'})");
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, 'context', {key:'newValue'}, 'Error', 593920000000) YIELD node RETURN node");
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, {key:'newValue'}, 'Error', 593920000000) YIELD node RETURN node");
             StatementResult correctResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(s) as stateId");
 
             // Then

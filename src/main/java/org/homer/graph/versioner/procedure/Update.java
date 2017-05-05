@@ -17,10 +17,9 @@ public class Update {
     public GraphDatabaseService db;
 
     @Procedure(value = "graph.versioner.update", mode = Mode.WRITE)
-    @Description("graph.versioner.update(entity, context, {key:value,...}, additionalLabel, date) - Add a new State to the given Entity.")
+    @Description("graph.versioner.update(entity, {key:value,...}, additionalLabel, date) - Add a new State to the given Entity.")
     public Stream<NodeOutput> update(
             @Name("entity") Node entity,
-            @Name("context") String context,
             @Name("stateProps") Map<String, Object> stateProps,
             @Name(value = "additionalLabel", defaultValue = "") String additionalLabel,
             @Name(value = "date", defaultValue = "0") long date) {
@@ -33,7 +32,6 @@ public class Update {
             labelNames.add(additionalLabel);
         }
         Node newState = Utility.setProperties(db.createNode(Utility.labels(labelNames)), stateProps);
-        newState.setProperty(Utility.CONTEXT_PROP, context);
 
         long instantDate = (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
 
