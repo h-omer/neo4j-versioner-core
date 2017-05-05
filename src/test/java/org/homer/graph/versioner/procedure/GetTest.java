@@ -27,7 +27,7 @@ public class GetTest {
             .withProcedure(Get.class);
 
     @Test
-    public void shouldGetCurrentByGivenEntity() {
+    public void shouldGetCurrentPathByGivenEntity() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig())) {
@@ -39,7 +39,7 @@ public class GetTest {
             Node state = session.run("MATCH (s:State) RETURN s").single().get("s").asNode();
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.get.current(e) YIELD path RETURN path");
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.get.current.path(e) YIELD path RETURN path");
 
             Path current = result.single().get("path").asPath();
             Iterator<Relationship> relsIterator = current.relationships().iterator();
@@ -54,6 +54,24 @@ public class GetTest {
             assertThat(rels.containsKey(Utility.CURRENT_TYPE), equalTo(true));
             assertThat(rels.containsKey(Utility.HAS_STATE_TYPE), equalTo(true));
             assertThat(current.contains(state), equalTo(true));
+        }
+    }
+
+    @Test
+    public void shouldGetCurrentStateByGivenEntity() {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig())) {
+            // Given
+            Session session = driver.session();
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
+            Node state = session.run("MATCH (s:State) RETURN s").single().get("s").asNode();
+
+            // When
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.get.current.state(e) YIELD node RETURN node");
+
+            // Then
+            assertThat(result.single().get("node").asNode(), equalTo(state));
         }
     }
 }

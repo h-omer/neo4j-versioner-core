@@ -1,7 +1,7 @@
 package org.homer.graph.versioner.procedure;
 
-import org.homer.graph.versioner.output.IdOutput;
 import org.homer.graph.versioner.Utility;
+import org.homer.graph.versioner.output.NodeOutput;
 import org.neo4j.graphdb.*;
 import org.neo4j.procedure.*;
 
@@ -18,7 +18,7 @@ public class Update {
 
     @Procedure(value = "graph.versioner.update", mode = Mode.WRITE)
     @Description("graph.versioner.update(entity, context, {key:value,...}, additionalLabel, date) - Add a new State to the given Entity.")
-    public Stream<IdOutput> update(
+    public Stream<NodeOutput> update(
             @Name("entity") Node entity,
             @Name("context") String context,
             @Name("stateProps") Map<String, Object> stateProps,
@@ -68,6 +68,6 @@ public class Update {
             entity.createRelationshipTo(newState, RelationshipType.withName(Utility.HAS_STATE_TYPE)).setProperty(Utility.START_DATE_PROP, instantDate);
         }
 
-        return Stream.of(new IdOutput(newState.getId()));
+        return Stream.of(new NodeOutput(newState));
     }
 }

@@ -1,13 +1,16 @@
 package org.homer.graph.versioner.procedure;
 
-import org.homer.graph.versioner.output.IdOutput;
 import org.homer.graph.versioner.Utility;
+import org.homer.graph.versioner.output.NodeOutput;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.procedure.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -20,7 +23,7 @@ public class Init {
 
     @Procedure(value = "graph.versioner.init", mode = Mode.WRITE)
     @Description("graph.versioner.init(entityLabel, {key:value,...}, {key:value,...}, context) - Create an Entity node with an optional initial State.")
-    public Stream<IdOutput> init(
+    public Stream<NodeOutput> init(
             @Name("entityLabel") String entityLabel,
             @Name(value = "entityProps", defaultValue = "{}") Map<String, Object> entityProps,
             @Name(value = "stateProps", defaultValue = "{}") Map<String, Object> stateProps,
@@ -45,6 +48,6 @@ public class Init {
             entity.createRelationshipTo(state, RelationshipType.withName(Utility.HAS_STATE_TYPE)).setProperty(Utility.START_DATE_PROP, date);
         }
 
-        return Stream.of(new IdOutput(entity.getId()));
+        return Stream.of(new NodeOutput(entity));
     }
 }

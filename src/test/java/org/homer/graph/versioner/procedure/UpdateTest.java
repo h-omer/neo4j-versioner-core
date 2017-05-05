@@ -29,13 +29,13 @@ public class UpdateTest {
             session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, 'context', {key:'newValue'}) YIELD id RETURN id");
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, 'context', {key:'newValue'}) YIELD node RETURN node");
             StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
             StatementResult nextResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) return s2");
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
 
             // Then
-            assertThat(result.single().get("id").asLong(), equalTo(2l));
+            assertThat(result.single().get("node").asNode().id(), equalTo(2l));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2l));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1l));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0l));
@@ -53,14 +53,14 @@ public class UpdateTest {
             session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, 'context', {key:'newValue'}, 'Error') YIELD id RETURN id");
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, 'context', {key:'newValue'}, 'Error') YIELD node RETURN node");
             StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
             StatementResult nextResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) return s2");
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
             StatementResult currentStateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s) return s");
 
             // Then
-            assertThat(result.single().get("id").asLong(), equalTo(2l));
+            assertThat(result.single().get("node").asNode().id(), equalTo(2l));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2l));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1l));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0l));
@@ -79,7 +79,7 @@ public class UpdateTest {
             session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, 'context', {key:'newValue'}, 'Error', 593920000000) YIELD id RETURN id");
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, 'context', {key:'newValue'}, 'Error', 593920000000) YIELD node RETURN node");
             StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
             StatementResult nextResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) return s2");
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
@@ -88,7 +88,7 @@ public class UpdateTest {
             StatementResult hasStatusDateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State)-[:PREVIOUS]->(s2:State)<-[rel:HAS_STATE]-(e) RETURN rel.endDate as endDate");
 
             // Then
-            assertThat(result.single().get("id").asLong(), equalTo(2l));
+            assertThat(result.single().get("node").asNode().id(), equalTo(2l));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2l));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1l));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0l));
@@ -108,11 +108,11 @@ public class UpdateTest {
             session.run("CREATE (e:Entity {key:'immutableValue'})");
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, 'context', {key:'newValue'}, 'Error', 593920000000) YIELD id RETURN id");
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, 'context', {key:'newValue'}, 'Error', 593920000000) YIELD node RETURN node");
             StatementResult correctResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(s) as stateId");
 
             // Then
-            assertThat(result.single().get("id").asLong(), equalTo(1l));
+            assertThat(result.single().get("node").asNode().id(), equalTo(1l));
             assertThat(correctResult.single().get("stateId").asLong(), equalTo(1l));
         }
     }
