@@ -74,4 +74,36 @@ public class GetTest {
             assertThat(result.single().get("node").asNode(), equalTo(state));
         }
     }
+
+    @Test
+    public void shouldGetAllStateNodesByGivenEntity() {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig())) {
+            // Given
+            Session session = driver.session();
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            session.run("MATCH (e)-[hs:HAS_STATE]->(s) CREATE (e)-[:HAS_STATE {startDate: 593900000000, endDate: hs.startDate}]->(:State{key:'oldState'})");
+            session.run("MATCH (s1:State {key:'oldState'}), (s2:State {key:'initialValue'}) CREATE (s1)<-[:PREVIOUS {date: 593900000000}]-(s2) ");
+            Node stateNew = session.run("MATCH (s:State {key:'initialValue'}) RETURN s").single().get("s").asNode();
+            Node stateOld = session.run("MATCH (s:State {key:'oldState'}) RETURN s").single().get("s").asNode();
+
+            // When
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.get.all(e) YIELD path RETURN path");
+
+            Path current = result.single().get("path").asPath();
+            Iterator<Relationship> relsIterator = current.relationships().iterator();
+            Map<String, Object> rels = new HashMap<>();
+            while (relsIterator.hasNext()) {
+                Relationship support = relsIterator.next();
+                rels.put(support.type(), support);
+            }
+
+            // Then
+            assertThat(current.contains(stateNew), equalTo(true));
+            assertThat(rels.containsKey(Utility.PREVIOUS_TYPE), equalTo(true));
+            assertThat(current.contains(stateOld), equalTo(true));
+        }
+    }
 }

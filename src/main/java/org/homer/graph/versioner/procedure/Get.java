@@ -24,8 +24,8 @@ public class Get {
 
         ResourceIterator<Path> result = this.db.execute(
                 "MATCH p=(e)-[c:" + Utility.CURRENT_TYPE + "]->(s:" + Utility.STATE_LABEL + ")<-[hs:" + Utility.HAS_STATE_TYPE + "]-(e) " +
-                        "WHERE id(e)=" + entity.getId() +
-                        " RETURN p").columnAs("p");
+                        "WHERE id(e)=" + entity.getId() + " " +
+                        "RETURN p").columnAs("p");
 
         return result.stream().map(PathOutput::new);
     }
@@ -44,5 +44,20 @@ public class Get {
         }
 
         return Stream.of(new NodeOutput(currentState));
+    }
+
+    @Procedure(value = "graph.versioner.get.all", mode = Mode.DEFAULT)
+    @Description("graph.versioner.get.all(entity) - Get all the State nodes for the given Entity")
+    public Stream<PathOutput> getAllState(
+            @Name("entity") Node entity) {
+
+        ResourceIterator<Path> result = this.db.execute(
+                "MATCH (e)-[hs:" + Utility.HAS_STATE_TYPE + "]->(s:" + Utility.STATE_LABEL + ")-[p:" + Utility.PREVIOUS_TYPE + "]->(sn:" + Utility.STATE_LABEL + ") " +
+                        "WHERE id(e)=" + entity.getId() + " " +
+                        "WITH s, p, sn " +
+                        "MATCH r=(s)-[p]->(sn) " +
+                        "RETURN r").columnAs("r");
+
+        return result.stream().map(PathOutput::new);
     }
 }
