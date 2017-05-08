@@ -3,6 +3,7 @@ package org.homer.graph.versioner.procedure;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.driver.v1.*;
+import org.neo4j.driver.v1.types.Node;
 import org.neo4j.harness.junit.Neo4jRule;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -109,6 +110,147 @@ public class UpdateTest {
 
             // When
             StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, {key:'newValue'}, 'Error', 593920000000) YIELD node RETURN node");
+            StatementResult correctResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(s) as stateId");
+
+            // Then
+            assertThat(result.single().get("node").asNode().id(), equalTo(1l));
+            assertThat(correctResult.single().get("stateId").asLong(), equalTo(1l));
+        }
+    }
+
+    @Test
+    public void shouldCreateAndPatchANewStateWithoutAdditionalLabelAndDate() throws Throwable {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig())) {
+            // Given
+            Session session = driver.session();
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+
+            // When
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.patch(e, {key:'newValue', newKey:'newestValue'}) YIELD node RETURN node");
+            Node currentState = result.single().get("node").asNode();
+            StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
+            StatementResult nextResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) return s2");
+            StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
+
+            // Then
+            assertThat(currentState.id(), equalTo(2l));
+            assertThat(countStateResult.single().get("s").asLong(), equalTo(2l));
+            assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1l));
+            assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0l));
+            assertThat(currentState.get("key").asString(), equalTo("newValue"));
+            assertThat(currentState.get("newKey").asString(), equalTo("newestValue"));
+        }
+    }
+
+    @Test
+    public void shouldCreateAndPatchANewStateWithAdditionalLabelButWithoutDate() throws Throwable {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig())) {
+            // Given
+            Session session = driver.session();
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+
+            // When
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.patch(e, {key:'newValue', newKey:'newestValue'}, 'Error') YIELD node RETURN node");
+            Node currentState = result.single().get("node").asNode();
+            StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
+            StatementResult nextResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) return s2");
+            StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
+            StatementResult currentStateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s) return s");
+
+            // Then
+            assertThat(currentState.id(), equalTo(2l));
+            assertThat(countStateResult.single().get("s").asLong(), equalTo(2l));
+            assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1l));
+            assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0l));
+            assertThat(currentStateResult.single().get("s").asNode().hasLabel("Error"), equalTo(true));
+            assertThat(currentState.get("key").asString(), equalTo("newValue"));
+            assertThat(currentState.get("newKey").asString(), equalTo("newestValue"));
+        }
+    }
+
+    @Test
+    public void shouldCreateAndPatchANewStateWithAdditionalLabelAndDate() throws Throwable {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig())) {
+            // Given
+            Session session = driver.session();
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+
+            // When
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.patch(e, {key:'newValue', newKey:'newestValue'}, 'Error', 593920000000) YIELD node RETURN node");
+            Node currentState = result.single().get("node").asNode();
+            StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
+            StatementResult nextResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) return s2");
+            StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
+            StatementResult currentStateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s) return s");
+            StatementResult dateResult = session.run("MATCH (e:Entity)-[r:CURRENT]->(s) RETURN r.date as relDate");
+            StatementResult hasStatusDateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State)-[:PREVIOUS]->(s2:State)<-[rel:HAS_STATE]-(e) RETURN rel.endDate as endDate");
+
+            // Then
+            assertThat(currentState.id(), equalTo(2l));
+            assertThat(countStateResult.single().get("s").asLong(), equalTo(2l));
+            assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1l));
+            assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0l));
+            assertThat(currentStateResult.single().get("s").asNode().hasLabel("Error"), equalTo(true));
+            assertThat(dateResult.single().get("relDate").asLong(), equalTo(593920000000l));
+            assertThat(hasStatusDateResult.single().get("endDate").asLong(), equalTo(593920000000l));
+            assertThat(currentState.get("key").asString(), equalTo("newValue"));
+            assertThat(currentState.get("newKey").asString(), equalTo("newestValue"));
+        }
+    }
+
+    @Test
+    public void shouldCreateAndPatchANewStateWithAdditionalLabelAndDateButWithANewProp() throws Throwable {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig())) {
+            // Given
+            Session session = driver.session();
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+
+            // When
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.patch(e, {newKey:'newestValue'}, 'Error', 593920000000) YIELD node RETURN node");
+            Node currentState = result.single().get("node").asNode();
+            StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
+            StatementResult nextResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) return s2");
+            StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
+            StatementResult currentStateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s) return s");
+            StatementResult dateResult = session.run("MATCH (e:Entity)-[r:CURRENT]->(s) RETURN r.date as relDate");
+            StatementResult hasStatusDateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State)-[:PREVIOUS]->(s2:State)<-[rel:HAS_STATE]-(e) RETURN rel.endDate as endDate");
+
+            // Then
+            assertThat(currentState.id(), equalTo(2l));
+            assertThat(countStateResult.single().get("s").asLong(), equalTo(2l));
+            assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1l));
+            assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0l));
+            assertThat(currentStateResult.single().get("s").asNode().hasLabel("Error"), equalTo(true));
+            assertThat(dateResult.single().get("relDate").asLong(), equalTo(593920000000l));
+            assertThat(hasStatusDateResult.single().get("endDate").asLong(), equalTo(593920000000l));
+            assertThat(currentState.get("key").asString(), equalTo("initialValue"));
+            assertThat(currentState.get("newKey").asString(), equalTo("newestValue"));
+        }
+    }
+
+    @Test
+    public void shouldCreateANewStateFromAnEntityWithoutAStateUsingPatch() throws Throwable {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig())) {
+            // Given
+            Session session = driver.session();
+            session.run("CREATE (e:Entity {key:'immutableValue'})");
+
+            // When
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.patch(e, {key:'newValue'}, 'Error', 593920000000) YIELD node RETURN node");
             StatementResult correctResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(s) as stateId");
 
             // Then
