@@ -48,9 +48,9 @@ name | parameters | return values | description
 [graph.versioner.init](#init) | entityLabel, *{key:value,...}*, *{key:value,...}*, *additionalLabel*, *date* | **node** | Create an Entity node with an optional initial State.
 [graph.versioner.update](#update) | **entity**, {key:value,...}, *additionalLabel*, *date* | **node** | Add a new State to the given Entity.
 [graph.versioner.patch](#patch) | **entity**, {key:value,...}, *additionalLabel*, *date* | **node** | Add a new State to the given Entity, starting from the previous one. It will update all the properties, not labels.
-[graph.versioner.get.current.path](#get.current.path) | **entity** | **path** | Get a the current Path (Entity, State and rels) for the given Entity.
-[graph.versioner.get.current.state](#get.current.state) | **entity** | **node** | Get the current State node for the given Entity.
-[graph.versioner.get.all](#get.all) | **entity** | **path** | Get all the State nodes for the given Entity.
+[graph.versioner.get.current.path](#get-current-path) | **entity** | **path** | Get a the current Path (Entity, State and rels) for the given Entity.
+[graph.versioner.get.current.state](#get-current-state) | **entity** | **node** | Get the current State node for the given Entity.
+[graph.versioner.get.all](#get-all) | **entity** | **path** | Get all the State nodes for the given Entity.
 
 
 ## init
@@ -63,7 +63,7 @@ If date is given, `date` and `startDate` will be initialized with that value.
 
 #### Name
 
-`graph-versioner.init`
+`graph.versioner.init`
 
 #### Parameters
 
@@ -96,7 +96,7 @@ If the Entity node has no `State`, it will create a new `State` node, with both 
 
 #### Name
 
-`graph-versioner.update`
+`graph.versioner.update`
 
 #### Parameters
 
@@ -129,7 +129,7 @@ If the Entity node has no `State`, it will create a new `State` node, with both 
 
 #### Name
 
-`graph-versioner.patch`
+`graph.versioner.patch`
 
 #### Parameters
 
@@ -152,7 +152,7 @@ node | Node
 MATCH (d:Device) WITH d CALL graph.versioner.patch(d, {warnings: 'some warnings'}, 'Warning', 593920000000) YIELD node RETURN node
 ```
 
-## get.current.path
+## get current path
 
 This procedure is used to retrieve the current path: by a given Entity node, it will return a path formed by the Entity node, the `State` node and both `HAS_STATE` and `CURRENT` relationships.
 
@@ -160,7 +160,7 @@ This procedure is used to retrieve the current path: by a given Entity node, it 
 
 #### Name
 
-`graph-versioner.get.current.path`
+`graph.versioner.get.current.path`
 
 #### Parameters
 
@@ -181,7 +181,7 @@ path | Path
 MATCH (d:Device) WITH d CALL graph.versioner.get.current.path(d) YIELD path RETURN path
 ```
 
-## get.current.state
+## get current state
 
 This procedure is used to retrieve the current `State` node: by a given Entity node.
 
@@ -189,7 +189,7 @@ This procedure is used to retrieve the current `State` node: by a given Entity n
 
 #### Name
 
-`graph-versioner.get.current.state`
+`graph.versioner.get.current.state`
 
 #### Parameters
 
@@ -209,7 +209,7 @@ node | Node
 MATCH (d:Device) WITH d CALL graph.versioner.get.current.state(d) YIELD node RETURN node
 ```
 
-## get.all
+## get all
 
 This procedure is used to retrieve all the `State` nodes and `PREVIOUS` relationships in a path, by a given Entity node.
 
@@ -217,7 +217,7 @@ This procedure is used to retrieve all the `State` nodes and `PREVIOUS` relation
 
 #### Name
 
-`graph-versioner.get.all`
+`graph.versioner.get.all`
 
 #### Parameters
 
