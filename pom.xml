@@ -9,7 +9,26 @@
 
   <packaging>jar</packaging>
   <name>Neo4j Graph Versioner</name>
-  <description>Neo4j Procedure for Graph Versioning</description>
+  <description>Neo4j Procedures for Graph Versioning</description>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>albertodeste</id>
+      <name>Alberto D'Este</name>
+    </developer>
+    <developer>
+      <id>mfalcier</id>
+      <name>Marco Falcier</name>
+    </developer>
+  </developers>
 
   <properties>
     <neo4j.version>3.1.2</neo4j.version>

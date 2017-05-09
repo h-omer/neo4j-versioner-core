@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/h-omer/neo4j-graph-versioner.svg?branch=master)](https://travis-ci.org/h-omer/neo4j-graph-versioner)
+
 # Neo4j Graph Versioner
 
 Neo4j Graph Versioner is made of a series of procedures, meant to be used in order to help developers to manage the Entity-State model, by creating, updating and querying the graph.
