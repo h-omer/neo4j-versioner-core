@@ -42,5 +42,4 @@ You can find the full codumentation [here](https://h-omer.github.io/neo4j-graph-
 
 ## Feedback
 
-We would love to hear what do you know about the Graph Versioner, how to improve it and how to fix (we hope not so many! :see_no_evil:) bad things. Say yours in the [issue](https://github.com/h-omer/neo4j-graph-versioner/issues) section.
-
+We would love to know what do you think about the Graph Versioner, how to improve it and how to fix (we hope not so many! :see_no_evil:) bad things. Say yours in the [issue](https://github.com/h-omer/neo4j-graph-versioner/issues) section.
