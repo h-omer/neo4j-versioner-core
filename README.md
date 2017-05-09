@@ -16,7 +16,9 @@ Apache License 2.0
 
 Neo4j Graph Versioner has been developed by [Marco Falcier](https://github.com/mfalcier) and [Alberto D'Este](https://github.com/albertodeste).
 
-It's based on the following data model
+It's based on the following data model: 
+
+![Data Model](https://raw.githubusercontent.com/h-omer/neo4j-graph-versioner/master/docs/images/data-model.png)
 
 ## Examples
 

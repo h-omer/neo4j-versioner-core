@@ -25,7 +25,9 @@ There are 3 different relationships:
 * `(:Entity)-[:HAS_STATE {startDate: 123456788, endDate: 123456789}]-(State)`, representing an Entity `State`, it will have an endDate only if the `State` node is not the current one;
 * `(newerState:State)-[:PREVIOUS {date: 123456788}]->(older:State)`, representing the previous `State` of the indexed one.
 
-This is how the data model looks like.
+This is how the data model looks like:
+
+![Data Model](https://raw.githubusercontent.com/h-omer/neo4j-graph-versioner/master/docs/images/data-model.png)
 
 ## Use cases
 
@@ -156,6 +158,10 @@ MATCH (d:Device) WITH d CALL graph.versioner.patch(d, {warnings: 'some warnings'
 
 This procedure is used to retrieve the current path: by a given Entity node, it will return a path formed by the Entity node, the `State` node and both `HAS_STATE` and `CURRENT` relationships.
 
+This is how the returned path looks like:
+
+![Get Current Path](https://raw.githubusercontent.com/h-omer/neo4j-graph-versioner/master/docs/images/get-path.png)
+
 ### Details
 
 #### Name
@@ -212,6 +218,10 @@ MATCH (d:Device) WITH d CALL graph.versioner.get.current.state(d) YIELD node RET
 ## get all
 
 This procedure is used to retrieve all the `State` nodes and `PREVIOUS` relationships in a path, by a given Entity node.
+
+Here is how the returned path looks like:
+
+![Get All](https://raw.githubusercontent.com/h-omer/neo4j-graph-versioner/master/docs/images/get-all.png)
 
 ### Details
 
