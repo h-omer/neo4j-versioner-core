@@ -18,7 +18,7 @@ public class Get {
     public GraphDatabaseService db;
 
     @Procedure(value = "graph.versioner.get.current.path", mode = Mode.DEFAULT)
-    @Description("graph.versioner.get.current.path(entity) - Get a the current Path (Entity, State and rels) for the given Entity")
+    @Description("graph.versioner.get.current.path(entity) - Get a the current Path (Entity, State and rels) for the given Entity.")
     public Stream<PathOutput> getCurrentPath(
             @Name("entity") Node entity) {
 
@@ -31,7 +31,7 @@ public class Get {
     }
 
     @Procedure(value = "graph.versioner.get.current.state", mode = Mode.DEFAULT)
-    @Description("graph.versioner.get.current.state(entity) - Get a the current State node for the given Entity")
+    @Description("graph.versioner.get.current.state(entity) - Get the current State node for the given Entity.")
     public Stream<NodeOutput> getCurrentState(
             @Name("entity") Node entity) {
 
@@ -47,7 +47,7 @@ public class Get {
     }
 
     @Procedure(value = "graph.versioner.get.all", mode = Mode.DEFAULT)
-    @Description("graph.versioner.get.all(entity) - Get all the State nodes for the given Entity")
+    @Description("graph.versioner.get.all(entity) - Get all the State nodes for the given Entity.")
     public Stream<PathOutput> getAllState(
             @Name("entity") Node entity) {
 
