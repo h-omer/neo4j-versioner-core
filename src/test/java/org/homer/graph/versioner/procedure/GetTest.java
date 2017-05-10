@@ -30,9 +30,8 @@ public class GetTest {
     public void shouldGetCurrentPathByGivenEntity() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig())) {
+                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
             // Given
-            Session session = driver.session();
             session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
             session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
             Node entity = session.run("MATCH (e:Entity) RETURN e").single().get("e").asNode();
@@ -52,7 +51,6 @@ public class GetTest {
             // Then
             assertThat(current.contains(entity), equalTo(true));
             assertThat(rels.containsKey(Utility.CURRENT_TYPE), equalTo(true));
-            assertThat(rels.containsKey(Utility.HAS_STATE_TYPE), equalTo(true));
             assertThat(current.contains(state), equalTo(true));
         }
     }
@@ -61,9 +59,8 @@ public class GetTest {
     public void shouldGetCurrentStateByGivenEntity() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig())) {
+                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
             // Given
-            Session session = driver.session();
             session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
             Node state = session.run("MATCH (s:State) RETURN s").single().get("s").asNode();
 
@@ -79,13 +76,13 @@ public class GetTest {
     public void shouldGetAllStateNodesByGivenEntity() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig())) {
+                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
             // Given
-            Session session = driver.session();
             session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
             session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
             session.run("MATCH (e)-[hs:HAS_STATE]->(s) CREATE (e)-[:HAS_STATE {startDate: 593900000000, endDate: hs.startDate}]->(:State{key:'oldState'})");
             session.run("MATCH (s1:State {key:'oldState'}), (s2:State {key:'initialValue'}) CREATE (s1)<-[:PREVIOUS {date: 593900000000}]-(s2) ");
+            Node entity = session.run("MATCH (e:Entity) RETURN e").single().get("e").asNode();
             Node stateNew = session.run("MATCH (s:State {key:'initialValue'}) RETURN s").single().get("s").asNode();
             Node stateOld = session.run("MATCH (s:State {key:'oldState'}) RETURN s").single().get("s").asNode();
 
@@ -101,9 +98,38 @@ public class GetTest {
             }
 
             // Then
+            assertThat(current.contains(entity), equalTo(true));
             assertThat(current.contains(stateNew), equalTo(true));
             assertThat(rels.containsKey(Utility.PREVIOUS_TYPE), equalTo(true));
             assertThat(current.contains(stateOld), equalTo(true));
+        }
+    }
+
+    @Test
+    public void shouldGetAllStateNodesByGivenEntityWithOnlyOneCurrentState() {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
+            // Given
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            Node entity = session.run("MATCH (e:Entity) RETURN e").single().get("e").asNode();
+            Node stateNew = session.run("MATCH (s:State {key:'initialValue'}) RETURN s").single().get("s").asNode();
+
+            // When
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.get.all(e) YIELD path RETURN path");
+
+            Path current = result.single().get("path").asPath();
+            Iterator<Relationship> relsIterator = current.relationships().iterator();
+            Map<String, Object> rels = new HashMap<>();
+            while (relsIterator.hasNext()) {
+                Relationship support = relsIterator.next();
+                rels.put(support.type(), support);
+            }
+
+            // Then
+            assertThat(current.contains(entity), equalTo(true));
+            assertThat(current.contains(stateNew), equalTo(true));
         }
     }
 }

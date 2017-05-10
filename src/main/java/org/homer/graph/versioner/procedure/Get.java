@@ -24,16 +24,7 @@ public class Get {
     public Stream<PathOutput> getCurrentPath(
             @Name("entity") Node entity) {
 
-        String query = "MATCH p=(e)-[c:%s]->(s:%s)<-[hs:%s]-(e) WHERE id(e)=%d RETURN p";
-
-        ResourceIterator<Path> result = this.db.execute(String.format(query,
-                CURRENT_TYPE,
-                STATE_LABEL,
-                HAS_STATE_TYPE,
-                entity.getId()
-        )).columnAs("p");
-
-        return result.stream().map(PathOutput::new);
+        return getCurrentPathResourceIterator(entity).stream().map(PathOutput::new);
     }
 
     @Procedure(value = "graph.versioner.get.current.state", mode = DEFAULT)
@@ -50,19 +41,35 @@ public class Get {
     public Stream<PathOutput> getAllState(
             @Name("entity") Node entity) {
 
-        String query = "MATCH (e)-[hs:%s]->(s:%s)-[p:%s]->(sn:%s) WHERE id(e)=%d " +
-                "WITH s, p, sn " +
-                "MATCH r=(s)-[p]->(sn) " +
-                "RETURN r";
+        ResourceIterator<Path> result = null;
 
-        ResourceIterator<Path> result = this.db.execute(String.format(query,
-                HAS_STATE_TYPE,
-                STATE_LABEL,
-                PREVIOUS_TYPE,
-                STATE_LABEL,
-                entity.getId()
-        )).columnAs("r");
+        Spliterator<Relationship> hasStateRelsIterator = entity.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.OUTGOING).spliterator();
+
+        if (StreamSupport.stream(hasStateRelsIterator, false).count() != 1) {
+            String query = "MATCH path=(e)-[%s]->(:%s)-[:%s*]->(:%s) WHERE id(e)=%d " +
+                    "RETURN path, length(path) ORDER BY length(path) DESC LIMIT 1";
+
+            result = this.db.execute(String.format(query,
+                    CURRENT_TYPE,
+                    STATE_LABEL,
+                    PREVIOUS_TYPE,
+                    STATE_LABEL,
+                    entity.getId()
+            )).columnAs("path");
+        } else {
+            result = getCurrentPathResourceIterator(entity);
+        }
 
         return result.stream().map(PathOutput::new);
+    }
+
+    private ResourceIterator<Path> getCurrentPathResourceIterator(Node node) {
+        String query = "MATCH path=(e)-[c:%s]->(s:%s) WHERE id(e)=%d RETURN path";
+
+        return this.db.execute(String.format(query,
+                CURRENT_TYPE,
+                STATE_LABEL,
+                node.getId()
+        )).columnAs("path");
     }
 }
