@@ -3,9 +3,8 @@ package org.homer.graph.versioner;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Utility class, it contains some common utility methods and constants
@@ -28,10 +27,7 @@ public class Utility {
      * @return a node with properties
      */
     public static Node setProperties(Node node, Map<String, Object> props) {
-        for (Map.Entry<String, Object> entry : props.entrySet()) {
-            node.setProperty(entry.getKey(), entry.getValue());
-        }
-
+        props.forEach(node::setProperty);
         return node;
     }
 
@@ -40,19 +36,22 @@ public class Utility {
      * @param labelNames a {@link List} of label names
      * @return {@link Label[]}
      */
-    public static Label[] labels(Object labelNames) {
-        if (labelNames == null) return new Label[0];
-        if (labelNames instanceof List) {
-            List names = (List) labelNames;
-            Label[] labels = new Label[names.size()];
-            int i = 0;
-            for (Object l : names) {
-                if (l == null) continue;
-                labels[i++] = Label.label(l.toString());
-            }
-            if (i <= labels.length) return Arrays.copyOf(labels, i);
-            return labels;
+    public static Label[] labels(List<String> labelNames) {
+        Label[] result;
+        if (Objects.isNull(labelNames)) {
+            result = new Label[0];
+        } else {
+            result = labelNames.stream().filter(Objects::nonNull).map(Label::label).toArray(Label[]::new);
         }
-        return new Label[]{Label.label(labelNames.toString())};
+        return result;
+    }
+
+	/**
+     * Sets a {@link String} as a singleton Array {@link Label[]}
+     * @param labelName a {@link String} representing the unique label
+     * @return {@link Label[]}
+     */
+    public static Label[] labels(String labelName) {
+        return new Label[]{Label.label(labelName)};
     }
 }

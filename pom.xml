@@ -13,6 +13,9 @@
 
   <properties>
     <neo4j.version>3.1.2</neo4j.version>
+    <neo4j.driver.version>1.1.0</neo4j.driver.version>
+    <java.version>1.8</java.version>
+    <junit.version>4.12</junit.version>
   </properties>
 
   <dependencies>
@@ -42,14 +45,14 @@
       <!-- Used to send cypher statements to our procedure. -->
       <groupId>org.neo4j.driver</groupId>
       <artifactId>neo4j-java-driver</artifactId>
-      <version>1.1.0</version>
+      <version>${neo4j.driver.version}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.12</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -61,8 +64,8 @@
         <version>3.1</version>
         <configuration>
           <!-- Neo4j Procedures require Java 8 -->
-          <source>1.8</source>
-          <target>1.8</target>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
         </configuration>
       </plugin>
       <plugin>

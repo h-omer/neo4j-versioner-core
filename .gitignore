@@ -17,3 +17,6 @@ hs_err_pid*
 
 # Maven #
 /target
+
+# MAC Journaling #
+/.DS_Store
