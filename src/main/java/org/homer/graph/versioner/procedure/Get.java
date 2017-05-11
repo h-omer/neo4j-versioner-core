@@ -3,14 +3,18 @@ package org.homer.graph.versioner.procedure;
 import org.homer.graph.versioner.output.NodeOutput;
 import org.homer.graph.versioner.output.PathOutput;
 import org.neo4j.graphdb.*;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 
 import java.util.Spliterator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static org.neo4j.procedure.Mode.*;
 import static org.homer.graph.versioner.Utility.*;
+import static org.neo4j.procedure.Mode.DEFAULT;
+
 /**
  * Get class, it contains all the Procedures needed to retrieve Entities and States nodes from the database
  */
@@ -32,8 +36,8 @@ public class Get {
     public Stream<NodeOutput> getCurrentState(
             @Name("entity") Node entity) {
 
-		Spliterator<Relationship> iterator = entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING).spliterator();
-		return StreamSupport.stream(iterator, false).map(currentState -> new NodeOutput(currentState.getEndNode()));
+        Spliterator<Relationship> iterator = entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING).spliterator();
+        return StreamSupport.stream(iterator, false).map(currentState -> new NodeOutput(currentState.getEndNode()));
     }
 
     @Procedure(value = "graph.versioner.get.all", mode = DEFAULT)

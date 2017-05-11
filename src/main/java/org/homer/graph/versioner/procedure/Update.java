@@ -2,6 +2,7 @@ package org.homer.graph.versioner.procedure;
 
 import org.homer.graph.versioner.output.NodeOutput;
 import org.neo4j.graphdb.*;
+import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
 import java.util.*;
@@ -18,6 +19,9 @@ public class Update {
     @Context
     public GraphDatabaseService db;
 
+    @Context
+    public Log log;
+
     @Procedure(value = "graph.versioner.update", mode = Mode.WRITE)
     @Description("graph.versioner.update(entity, {key:value,...}, additionalLabel, date) - Add a new State to the given Entity.")
     public Stream<NodeOutput> update(
@@ -25,7 +29,6 @@ public class Update {
             @Name("stateProps") Map<String, Object> stateProps,
             @Name(value = "additionalLabel", defaultValue = "") String additionalLabel,
             @Name(value = "date", defaultValue = "0") long date) {
-
 
         // Creating the new State
         List<String> labelNames = new ArrayList<>(Collections.singletonList(STATE_LABEL));
@@ -38,7 +41,7 @@ public class Update {
 
         // Getting the CURRENT rel if it exist
         Spliterator<Relationship> currentRelIterator = entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING).spliterator();
-		StreamSupport.stream(currentRelIterator, false).forEach(currentRel -> {
+        StreamSupport.stream(currentRelIterator, false).forEach(currentRel -> {
             Node currentState = currentRel.getEndNode();
             Long currentDate = (Long) currentRel.getProperty("date");
 
@@ -47,14 +50,16 @@ public class Update {
 
             // Updating the HAS_STATUS rel for the current node, adding endDate
             currentState.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.INCOMING)
-					.forEach(hasStatusRel -> hasStatusRel.setProperty(END_DATE_PROP, instantDate));
+                    .forEach(hasStatusRel -> hasStatusRel.setProperty(END_DATE_PROP, instantDate));
 
             // Refactoring current relationship and adding the new ones
             currentRel.delete();
         });
 
-		entity.createRelationshipTo(newState, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, instantDate);
+        entity.createRelationshipTo(newState, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, instantDate);
         entity.createRelationshipTo(newState, RelationshipType.withName(HAS_STATE_TYPE)).setProperty(START_DATE_PROP, instantDate);
+
+        log.info(LOGGER_TAG + "Updated Entity with id {}, adding a State with id {}", entity.getId(), newState.getId());
 
         return Stream.of(new NodeOutput(newState));
     }
@@ -67,7 +72,6 @@ public class Update {
             @Name(value = "additionalLabel", defaultValue = "") String additionalLabel,
             @Name(value = "date", defaultValue = "0") long date) {
 
-
         // Creating the new State
         List<String> labelNames = new ArrayList<>(Collections.singletonList(STATE_LABEL));
         if (!additionalLabel.isEmpty()) {
@@ -78,7 +82,7 @@ public class Update {
 
         // Getting the CURRENT rel if it exist
         Spliterator<Relationship> currentRelIterator = entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING).spliterator();
-		Node newState = StreamSupport.stream(currentRelIterator, false).map(currentRel -> {
+        Node newState = StreamSupport.stream(currentRelIterator, false).map(currentRel -> {
             Node currentState = currentRel.getEndNode();
             Long currentDate = (Long) currentRel.getProperty("date");
 
@@ -92,19 +96,21 @@ public class Update {
 
             // Updating the HAS_STATUS rel for the current node, adding endDate
             currentState.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.INCOMING)
-					.forEach(hasStatusRel -> hasStatusRel.setProperty(END_DATE_PROP, instantDate));
+                    .forEach(hasStatusRel -> hasStatusRel.setProperty(END_DATE_PROP, instantDate));
 
             // Refactoring current relationship and adding the new ones
             currentRel.delete();
             entity.createRelationshipTo(result, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, instantDate);
             entity.createRelationshipTo(result, RelationshipType.withName(HAS_STATE_TYPE)).setProperty(START_DATE_PROP, instantDate);
-			return result;
+            return result;
         }).findFirst().orElseGet(() -> {
-			Node result = setProperties(db.createNode(labels(labelNames)), stateProps);
-			entity.createRelationshipTo(result, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, instantDate);
-			entity.createRelationshipTo(result, RelationshipType.withName(HAS_STATE_TYPE)).setProperty(START_DATE_PROP, instantDate);
-			return result;
-		});
+            Node result = setProperties(db.createNode(labels(labelNames)), stateProps);
+            entity.createRelationshipTo(result, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, instantDate);
+            entity.createRelationshipTo(result, RelationshipType.withName(HAS_STATE_TYPE)).setProperty(START_DATE_PROP, instantDate);
+            return result;
+        });
+
+        log.info(LOGGER_TAG + "Patched Entity with id {}, adding a State with id {}", entity.getId(), newState.getId());
 
         return Stream.of(new NodeOutput(newState));
     }

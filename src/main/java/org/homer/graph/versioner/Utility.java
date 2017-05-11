@@ -3,8 +3,9 @@ package org.homer.graph.versioner;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Utility class, it contains some common utility methods and constants
@@ -18,11 +19,12 @@ public class Utility {
     public static final String DATE_PROP = "date";
     public static final String START_DATE_PROP = "startDate";
     public static final String END_DATE_PROP = "endDate";
+    public static final String LOGGER_TAG = "[graph-versioner] - ";
 
     /**
      * Sets a {@link Map} of properties to a {@link Node}
      *
-     * @param node passed node
+     * @param node  passed node
      * @param props properties to be set
      * @return a node with properties
      */
@@ -33,6 +35,7 @@ public class Utility {
 
     /**
      * Sets a {@link List} of label names into a {@link Label[]}
+     *
      * @param labelNames a {@link List} of label names
      * @return {@link Label[]}
      */
@@ -46,8 +49,9 @@ public class Utility {
         return result;
     }
 
-	/**
+    /**
      * Sets a {@link String} as a singleton Array {@link Label[]}
+     *
      * @param labelName a {@link String} representing the unique label
      * @return {@link Label[]}
      */
