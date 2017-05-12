@@ -25,7 +25,7 @@ public class InitTest {
     public void shouldCreateAnEmptyEntityWithoutAState() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // When
             StatementResult result = session.run("CALL graph.versioner.init('Entity')");
             Node entity = session.run("MATCH (e:Entity) RETURN e").single().get("e").asNode();
@@ -43,7 +43,7 @@ public class InitTest {
     public void shouldCreateAnEntityWithPropertiesWithoutAState() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // When
             StatementResult result = session.run("CALL graph.versioner.init('Entity', {key:'value'})");
             StatementResult entityResult = session.run("MATCH (e:Entity) RETURN properties(e) as props");
@@ -60,7 +60,7 @@ public class InitTest {
     public void shouldCreateAnEntityWithPropertiesWithAStateAndItsProperties() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // When
             StatementResult result = session.run("CALL graph.versioner.init('Entity', {key:'value'}, {key:'value'})");
             StatementResult entityResult = session.run("MATCH (e:Entity) RETURN properties(e) as props");
@@ -83,7 +83,7 @@ public class InitTest {
     public void shouldCreateAnEntityWithPropertiesWithAStateAndItsPropertiesWithAdditionalLabelButNoDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // When
             StatementResult result = session.run("CALL graph.versioner.init('Entity', {key:'value'}, {key:'value'}, 'Error')");
             StatementResult entityResult = session.run("MATCH (e:Entity) RETURN properties(e) as props");
@@ -108,7 +108,7 @@ public class InitTest {
     public void shouldCreateAnEntityWithPropertiesWithAStateAndItsPropertiesWithAdditionalLabelAndDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // When
             StatementResult result = session.run("CALL graph.versioner.init('Entity', {key:'value'}, {key:'value'}, 'Error', 593920000000)");
             StatementResult entityResult = session.run("MATCH (e:Entity) RETURN properties(e) as props");

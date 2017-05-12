@@ -50,9 +50,10 @@ name | parameters | return values | description
 [graph.versioner.init](#init) | entityLabel, *{key:value,...}*, *{key:value,...}*, *additionalLabel*, *date* | **node** | Create an Entity node with an optional initial State.
 [graph.versioner.update](#update) | **entity**, {key:value,...}, *additionalLabel*, *date* | **node** | Add a new State to the given Entity.
 [graph.versioner.patch](#patch) | **entity**, {key:value,...}, *additionalLabel*, *date* | **node** | Add a new State to the given Entity, starting from the previous one. It will update all the properties, not labels.
-[graph.versioner.get.current.path](#get-current-path) | **entity** | **path** | Get a the current Path (Entity, State and rels) for the given Entity.
+[graph.versioner.get.current.path](#get-current-path) | **entity** | **path** | Get a the current path (Entity, State and rels) for the given Entity.
 [graph.versioner.get.current.state](#get-current-state) | **entity** | **node** | Get the current State node for the given Entity.
-[graph.versioner.get.all](#get-all) | **entity** | **path** | Get all the State nodes for the given Entity.
+[graph.versioner.get.all](#get-all) | **entity** | **path** | Get an Entity State path for the given Entity.
+[graph.versioner.get.by.label](#get-by-label) | **entity**, label | **path** | Get State nodes with the given label, by the given Entity node.
 
 
 ## init
@@ -245,6 +246,36 @@ path | Path
 
 ```cypher
 MATCH (d:Device) WITH d CALL graph.versioner.get.all(d) YIELD path RETURN path
+```
+
+## get by label
+
+This procedure is used to retrieve all Entity `State` nodes, that have the given Label.
+
+
+### Details
+
+#### Name
+
+`graph.versioner.get.by.label`
+
+#### Parameters
+
+name | necessity | detail 
+---- | --------- | ------
+`entity` | mandatory | The entity node to operate with.
+`label` | mandatory | The additional `State` nodes label.
+
+#### Return value
+
+name | type 
+---- | ----
+node | node
+
+### Example call
+
+```cypher
+MATCH (d:Device) WITH d CALL graph.versioner.get.by.label(d, 'Error') YIELD path RETURN path
 ```
 
 # Feedback

@@ -8,6 +8,9 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Spliterator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -65,6 +68,27 @@ public class Get {
         }
 
         return result.stream().map(PathOutput::new);
+    }
+
+    @Procedure(value = "graph.versioner.get.by.label", mode = DEFAULT)
+    @Description("graph.versioner.get.by.label(entity, label) - Get State nodes with the given label, by the given Entity node")
+    public Stream<NodeOutput> getAllStateByLabel(
+            @Name("entity") Node entity,
+            @Name("label") String label) {
+
+        Collection<Node> result = new ArrayList<>();
+
+        Spliterator<Relationship> hasStateRelsIterator = entity.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.OUTGOING).spliterator();
+
+        StreamSupport.stream(hasStateRelsIterator, false).forEach(relationship -> {
+            Node state = relationship.getEndNode();
+
+            if (state.hasLabel(Label.label(label))) {
+                result.add(state);
+            }
+        });
+
+        return result.parallelStream().map(NodeOutput::new);
     }
 
     private ResourceIterator<Path> getCurrentPathResourceIterator(Node node) {

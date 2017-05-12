@@ -23,7 +23,7 @@ public class UpdateTest {
     public void shouldCreateANewStateWithoutAdditionalLabelAndDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
             session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
             session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
@@ -46,7 +46,7 @@ public class UpdateTest {
     public void shouldCreateANewStateWithAdditionalLabelButWithoutDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
             session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
             session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
@@ -71,7 +71,7 @@ public class UpdateTest {
     public void shouldCreateANewStateWithAdditionalLabelAndDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
             session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
             session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
@@ -100,7 +100,7 @@ public class UpdateTest {
     public void shouldCreateANewStateFromAnEntityWithoutAState() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
             session.run("CREATE (e:Entity {key:'immutableValue'})");
 
@@ -118,7 +118,7 @@ public class UpdateTest {
     public void shouldCreateAndPatchANewStateWithoutAdditionalLabelAndDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
             session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
             session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
@@ -144,7 +144,7 @@ public class UpdateTest {
     public void shouldCreateAndPatchANewStateWithAdditionalLabelButWithoutDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
             session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
             session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
@@ -172,7 +172,7 @@ public class UpdateTest {
     public void shouldCreateAndPatchANewStateWithAdditionalLabelAndDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
             session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
             session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
@@ -204,7 +204,7 @@ public class UpdateTest {
     public void shouldCreateAndPatchANewStateWithAdditionalLabelAndDateButWithANewProp() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
             session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
             session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
@@ -236,7 +236,7 @@ public class UpdateTest {
     public void shouldCreateANewStateFromAnEntityWithoutAStateUsingPatch() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
-                .driver(neo4j.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()); Session session = driver.session()) {
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
             session.run("CREATE (e:Entity {key:'immutableValue'})");
 
