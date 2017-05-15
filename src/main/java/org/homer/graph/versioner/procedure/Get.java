@@ -91,6 +91,27 @@ public class Get {
         return result.parallelStream().map(NodeOutput::new);
     }
 
+    @Procedure(value = "graph.versioner.get.by.date", mode = DEFAULT)
+    @Description("graph.versioner.get.by.date(entity, date) - Get State node by the given Entity node, created at the given date")
+    public Stream<NodeOutput> getStateByDate(
+            @Name("entity") Node entity,
+            @Name("date") long date) {
+
+        Collection<Node> result = new ArrayList<>();
+
+        Spliterator<Relationship> hasStateRelsIterator = entity.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.OUTGOING).spliterator();
+
+        StreamSupport.stream(hasStateRelsIterator, false).forEach(relationship -> {
+            Node state = relationship.getEndNode();
+
+            if (((Long)relationship.getProperty("startDate")).equals(date)) {
+                result.add(state);
+            }
+        });
+
+        return result.parallelStream().map(NodeOutput::new);
+    }
+
     private ResourceIterator<Path> getCurrentPathResourceIterator(Node node) {
         String query = "MATCH path=(e)-[c:%s]->(s:%s) WHERE id(e)=%d RETURN path";
 

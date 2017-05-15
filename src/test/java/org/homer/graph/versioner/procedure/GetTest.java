@@ -186,4 +186,31 @@ public class GetTest {
             }
         }
     }
+
+    @Test
+    public void shouldGetSpecificStateNodeByGivenEntityAndDate() {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
+            // Given
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:HAS_STATE {startDate:593910000000}]->(s:State:Error {key:'initialValue'})");
+            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:593920000000}]->(s:State:Test {key:'initialValue'})");
+            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:593930000000}]->(s:State {key:'initialValue'})");
+
+            // When
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.get.by.date(e, 593920000000) YIELD node RETURN node");
+
+            // Then
+            boolean failure = true;
+
+            while (result.hasNext()) {
+                failure = false;
+                assertThat(result.next().get("node").asNode().hasLabel("Test"), equalTo(true));
+            }
+
+            if (failure) {
+                fail();
+            }
+        }
+    }
 }
