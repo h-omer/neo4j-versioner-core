@@ -16,7 +16,7 @@ Apache License 2.0
 
 ## About
 
-Neo4j Graph Versioner has been developed by [Marco Falcier](https://github.com/mfalcier) and [Alberto D'Este](https://github.com/albertodeste).
+Neo4j Graph Versioner has been developed by [Alberto D'Este](https://github.com/albertodeste) and [Marco Falcier](https://github.com/mfalcier).
 
 It's based on the following data model: 
 
