@@ -16,6 +16,7 @@ public class Utility {
     public static final String CURRENT_TYPE = "CURRENT";
     public static final String HAS_STATE_TYPE = "HAS_STATE";
     public static final String PREVIOUS_TYPE = "PREVIOUS";
+    public static final String ROLLBACK_TYPE = "ROLLBACK";
     public static final String DATE_PROP = "date";
     public static final String START_DATE_PROP = "startDate";
     public static final String END_DATE_PROP = "endDate";

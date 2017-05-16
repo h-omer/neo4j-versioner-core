@@ -48,7 +48,7 @@ public class Update {
             // Creating PREVIOUS relationship between the current and the new State
             newState.createRelationshipTo(currentState, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
 
-            // Updating the HAS_STATUS rel for the current node, adding endDate
+            // Updating the HAS_STATE rel for the current node, adding endDate
             currentState.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.INCOMING)
                     .forEach(hasStatusRel -> hasStatusRel.setProperty(END_DATE_PROP, instantDate));
 
@@ -94,7 +94,7 @@ public class Update {
             // Creating PREVIOUS relationship between the current and the new State
             result.createRelationshipTo(currentState, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
 
-            // Updating the HAS_STATUS rel for the current node, adding endDate
+            // Updating the HAS_STATE rel for the current node, adding endDate
             currentState.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.INCOMING)
                     .forEach(hasStatusRel -> hasStatusRel.setProperty(END_DATE_PROP, instantDate));
 
