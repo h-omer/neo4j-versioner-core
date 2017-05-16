@@ -55,6 +55,7 @@ name | parameters | return values | description
 [graph.versioner.get.all](#get-all) | **entity** | **path** | Get an Entity State path for the given Entity.
 [graph.versioner.get.by.label](#get-by-label) | **entity**, label | **node** | Get State nodes with the given label, by the given Entity node.
 [graph.versioner.get.by.date](#get-by-date) | **entity**, date | **node** | Get State node by the given Entity node, created at the given date.
+[graph.versioner.rollback](#rollback) | **entity** | **node** | Rollback the current State to the first available one.
 
 
 ## init
@@ -288,7 +289,7 @@ This procedure is used to retrieve a specific Entity `State` node, that has been
 
 #### Name
 
-`graph.versioner.get.by.label`
+`graph.versioner.get.by.date`
 
 #### Parameters
 
@@ -307,6 +308,37 @@ node | node
 
 ```cypher
 MATCH (d:Device) WITH d CALL graph.versioner.get.by.date(d, 593920000000) YIELD node RETURN node
+```
+
+## rollback
+
+This procedure is used to rollback the current Entity `State` node, to the first available one. 
+The first available `State` node, is the first previous node, without an existing `ROLLBACK` relationship.
+If only one current `State` is available, `null` will be returned.
+
+
+### Details
+
+#### Name
+
+`graph.versioner.rollback`
+
+#### Parameters
+
+name | necessity | detail 
+---- | --------- | ------
+`entity` | mandatory | The entity node to operate with.
+
+#### Return value
+
+name | type 
+---- | ----
+node | node
+
+### Example call
+
+```cypher
+MATCH (d:Device) WITH d CALL graph.versioner.rollback(d) YIELD node RETURN node
 ```
 
 # Feedback
