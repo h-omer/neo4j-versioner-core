@@ -14,16 +14,17 @@ Apache License 2.0
 
 # About
 
-Neo4j Graph Versioner has been developed by [Marco Falcier](https://github.com/mfalcier) and [Alberto D'Este](https://github.com/albertodeste).
+Neo4j Graph Versioner has been developed by [Alberto D'Este](https://github.com/albertodeste) and [Marco Falcier](https://github.com/mfalcier).
 
 ## Data Model
 
 The current data model uses two kind of nodes: the Entity nodes, created by the user through a given Label and the `State` node, managed by the Graph Versioner.
 The `State` node can be saw as the set of mutable properties which regards the Entity, which instead has got only immutable properties.
-There are 3 different relationships:
+There are 4 different relationships:
 * `(:Entity)-[:CURRENT {date: 123456789}]-(:State)`, representing the current Entity `State`;
 * `(:Entity)-[:HAS_STATE {startDate: 123456788, endDate: 123456789}]-(State)`, representing an Entity `State`, it will have an endDate only if the `State` node is not the current one;
 * `(newerState:State)-[:PREVIOUS {date: 123456788}]->(older:State)`, representing the previous `State` of the indexed one.
+* `(rollbackedState:State)-[:ROLLBACK]->(older:State)`, representing that one `State` has been rolled back to a previous one. 
 
 This is how the data model looks like:
 
