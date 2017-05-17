@@ -10,7 +10,6 @@ import org.neo4j.procedure.Procedure;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Spliterator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -48,7 +47,7 @@ public class Get {
     public Stream<PathOutput> getAllState(
             @Name("entity") Node entity) {
 
-        ResourceIterator<Path> result = null;
+        ResourceIterator<Path> result;
 
         Spliterator<Relationship> hasStateRelsIterator = entity.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.OUTGOING).spliterator();
 
@@ -104,7 +103,7 @@ public class Get {
         StreamSupport.stream(hasStateRelsIterator, false).forEach(relationship -> {
             Node state = relationship.getEndNode();
 
-            if (((Long)relationship.getProperty("startDate")).equals(date)) {
+            if (relationship.getProperty("startDate").equals(date)) {
                 result.add(state);
             }
         });

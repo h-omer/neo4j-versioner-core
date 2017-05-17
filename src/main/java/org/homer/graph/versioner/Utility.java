@@ -1,11 +1,11 @@
 package org.homer.graph.versioner;
 
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.StreamSupport;
 
 /**
  * Utility class, it contains some common utility methods and constants
@@ -58,5 +58,19 @@ public class Utility {
      */
     public static Label[] labels(String labelName) {
         return new Label[]{Label.label(labelName)};
+    }
+
+	/**
+     * Creates a new node copying properties and labels form a given one
+     *
+	 * @param db a {@link GraphDatabaseService} representing the database where the node will be created
+     * @param node a {@link Node} representing the node to clone
+     * @return {@link Node}
+     */
+    public static Node cloneNode(GraphDatabaseService db, Node node) {
+		List<String> labelNames = new ArrayList<>();
+		Spliterator<Label> labelsIterator = node.getLabels().spliterator();
+		StreamSupport.stream(labelsIterator, false).forEach(label -> labelNames.add(label.name()));
+		return setProperties(db.createNode(labels(labelNames)), node.getAllProperties());
     }
 }
