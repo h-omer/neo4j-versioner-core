@@ -56,7 +56,8 @@ name | parameters | return values | description
 [graph.versioner.get.all](#get-all) | **entity** | **path** | Get an Entity State path for the given Entity.
 [graph.versioner.get.by.label](#get-by-label) | **entity**, label | **node** | Get State nodes with the given label, by the given Entity node.
 [graph.versioner.get.by.date](#get-by-date) | **entity**, date | **node** | Get State node by the given Entity node, created at the given date.
-[graph.versioner.rollback](#rollback) | **entity** | **node** | Rollback the current State to the first available one.
+[graph.versioner.rollback](#rollback) | **entity**, *date* | **node** | Rollback the current State to the first available one.
+[graph.versioner.rollback.to](#rollback-to) | **entity**, **state**, *date* | **node** | Rollback the current State to the given one.
 
 
 ## init
@@ -315,7 +316,7 @@ MATCH (d:Device) WITH d CALL graph.versioner.get.by.date(d, 593920000000) YIELD 
 
 This procedure is used to rollback the current Entity `State` node, to the first available one. 
 The first available `State` node, is the first previous node, without an existing `ROLLBACK` relationship.
-If only one current `State` is available, `null` will be returned.
+If only one current `State` is available, `null` will be returned. If `date` is given, that value will be used instead of the current one.
 
 
 ### Details
@@ -329,6 +330,7 @@ If only one current `State` is available, `null` will be returned.
 name | necessity | detail 
 ---- | --------- | ------
 `entity` | mandatory | The entity node to operate with.
+`date` | optional | The time-in-millis value of a given date, used instead of the current one.
 
 #### Return value
 
@@ -339,7 +341,40 @@ node | node
 ### Example call
 
 ```cypher
-MATCH (d:Device) WITH d CALL graph.versioner.rollback(d) YIELD node RETURN node
+MATCH (d:Device) WITH d CALL graph.versioner.rollback(d, 593920000000) YIELD node RETURN node
+```
+
+## rollback to
+
+This procedure is used to rollback the current Entity `State` node, to the given one. 
+If the given `State` is the current one, or if it already has a `CURRENT` relationship, `null` will be returned. 
+If `date` is given, that value will be used instead of the current one.
+
+
+### Details
+
+#### Name
+
+`graph.versioner.rollback.to`
+
+#### Parameters
+
+name | necessity | detail 
+---- | --------- | ------
+`entity` | mandatory | The entity node to operate with.
+`state` | mandatory | The State node to rollback to.
+`date` | optional | The time-in-millis value of a given date, used instead of the current one.
+
+#### Return value
+
+name | type 
+---- | ----
+node | node
+
+### Example call
+
+```cypher
+MATCH (d:Device)-[:HAS_STATE]->(s:State {code:2}) WITH d, s CALL graph.versioner.rollback.to(d, s, 593920000000) YIELD node RETURN node
 ```
 
 # Feedback

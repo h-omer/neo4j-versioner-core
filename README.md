@@ -38,7 +38,7 @@ MATCH (d:Device) WITH d CALL graph.versioner.get.current.state(d) YIELD node RET
 
 ## Full documentation
 
-You can find the full codumentation [here](https://h-omer.github.io/neo4j-graph-versioner/).
+You can find the full documentation [here](https://h-omer.github.io/neo4j-graph-versioner/).
 
 ## Feedback
 

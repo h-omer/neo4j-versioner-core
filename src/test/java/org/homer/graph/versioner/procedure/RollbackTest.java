@@ -49,7 +49,7 @@ public class RollbackTest {
     }
 
     @Test
-    public void ShouldUseExistingRollbackRelationshipToRollBackAgain() {
+    public void shouldUseExistingRollbackRelationshipToRollBackAgain() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
@@ -90,6 +90,89 @@ public class RollbackTest {
 
             // When
             StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.rollback(e) YIELD node RETURN node");
+
+            // Then
+            boolean failure = true;
+
+            while (result.hasNext()) {
+                failure = false;
+                assertThat(result.next().get("node").isNull(), equalTo(true));
+            }
+
+            if (failure) {
+                fail();
+            }
+        }
+    }
+
+    @Test
+    public void shouldRollbackToTheGivenStateNode() {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
+            // Given
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:593900000000, endDate:59391000000}]->(s:State:Test {key:'initialValue'})");
+            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:593900000000}]->(s)");
+
+            // When
+            StatementResult result = session.run("MATCH (e:Entity)--(s:Test) WITH e, s CALL graph.versioner.rollback.to(e, s) YIELD node RETURN node");
+
+            // Then
+            boolean failure = true;
+
+            while (result.hasNext()) {
+                failure = false;
+                assertThat(result.next().get("node").asNode().hasLabel("Test"), equalTo(true));
+            }
+
+            if (failure) {
+                fail();
+            }
+        }
+    }
+
+    @Test
+    public void shouldGetNullIfTheGivenNodeHasAlreadyBeenRolledBack() {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
+            // Given
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:593900000000, endDate:59391000000}]->(s:State:Test {key:'initialValue'})");
+            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:593900000000}]->(s)");
+            session.run("MATCH (p:State)<-[:PREVIOUS]-(s:State) CREATE (p)<-[:ROLLBACK]-(s)");
+
+            // When
+            StatementResult result = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) WITH e, s CALL graph.versioner.rollback.to(e, s) YIELD node RETURN node");
+
+            // Then
+            boolean failure = true;
+
+            while (result.hasNext()) {
+                failure = false;
+                assertThat(result.next().get("node").isNull(), equalTo(true));
+            }
+
+            if (failure) {
+                fail();
+            }
+        }
+    }
+
+    @Test
+    public void shouldGetNullIfTheGivenNodeIsTheCurrentState() {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
+            // Given
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+
+            // When
+            StatementResult result = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) WITH e, s CALL graph.versioner.rollback.to(e, s) YIELD node RETURN node");
 
             // Then
             boolean failure = true;

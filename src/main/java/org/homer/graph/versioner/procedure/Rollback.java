@@ -24,71 +24,133 @@ import static org.neo4j.procedure.Mode.WRITE;
  */
 public class Rollback {
 
-	@Context public GraphDatabaseService db;
+    @Context
+    public GraphDatabaseService db;
 
-	@Context public Log log;
+    @Context
+    public Log log;
 
-	@Procedure(value = "graph.versioner.rollback", mode = WRITE) @Description("graph.versioner.rollback(entity) - Rollback the given Entity to its previous State") public Stream<NodeOutput> rollback(
-			@Name("entity") Node entity) {
+    @Procedure(value = "graph.versioner.rollback", mode = WRITE)
+    @Description("graph.versioner.rollback(entity, date) - Rollback the given Entity to its previous State")
+    public Stream<NodeOutput> rollback(
+            @Name("entity") Node entity,
+            @Name(value = "date", defaultValue = "0") long date) {
 
-		long instantDate = Calendar.getInstance().getTimeInMillis();
+        long instantDate = (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
 
-		// Getting the CURRENT rel if it exists
-		Spliterator<Relationship> currentRelIterator = entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING).spliterator();
-		Optional<Relationship> currentRelationshipOptional = StreamSupport.stream(currentRelIterator, false).filter(Objects::nonNull).findFirst();
+        // Getting the CURRENT rel if it exists
+        Spliterator<Relationship> currentRelIterator = entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING).spliterator();
+        Optional<Relationship> currentRelationshipOptional = StreamSupport.stream(currentRelIterator, false).filter(Objects::nonNull).findFirst();
 
-		Optional<Node> newState = currentRelationshipOptional.map(currentRelationship -> {
+        Optional<Node> newState = currentRelationshipOptional.map(currentRelationship -> {
 
-			Node currentState = currentRelationship.getEndNode();
+            Node currentState = currentRelationship.getEndNode();
 
-			return getFirstAvailableRollbackNode(currentState).map(rollbackState -> {
-				Long currentDate = (Long) currentRelationship.getProperty("date");
+            return getFirstAvailableRollbackNode(currentState).map(rollbackState -> {
+                Long currentDate = (Long) currentRelationship.getProperty("date");
 
-				// Creating the rollback state, from the previous one
-				Node result = Utility.cloneNode(db, rollbackState);
+                // Creating the rollback state, from the previous one
+                Node result = Utility.cloneNode(db, rollbackState);
 
-				//Creating ROLLBACK_TYPE relationship
-				result.createRelationshipTo(rollbackState, RelationshipType.withName(ROLLBACK_TYPE));
+                //Creating ROLLBACK_TYPE relationship
+                result.createRelationshipTo(rollbackState, RelationshipType.withName(ROLLBACK_TYPE));
 
-				// Creating PREVIOUS relationship between the current and the new State
-				result.createRelationshipTo(currentState, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
+                // Creating PREVIOUS relationship between the current and the new State
+                result.createRelationshipTo(currentState, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
 
-				// Updating the HAS_STATE rel for the current node, adding endDate
-				currentState.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.INCOMING)
-						.forEach(hasStatusRel -> hasStatusRel.setProperty(END_DATE_PROP, instantDate));
+                // Updating the HAS_STATE rel for the current node, adding endDate
+                currentState.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.INCOMING)
+                        .forEach(hasStatusRel -> hasStatusRel.setProperty(END_DATE_PROP, instantDate));
 
-				// Refactoring current relationship and adding the new ones
-				currentRelationship.delete();
-				entity.createRelationshipTo(result, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, instantDate);
-				entity.createRelationshipTo(result, RelationshipType.withName(HAS_STATE_TYPE)).setProperty(START_DATE_PROP, instantDate);
+                // Refactoring current relationship and adding the new ones
+                currentRelationship.delete();
+                entity.createRelationshipTo(result, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, instantDate);
+                entity.createRelationshipTo(result, RelationshipType.withName(HAS_STATE_TYPE)).setProperty(START_DATE_PROP, instantDate);
 
-				log.info(LOGGER_TAG + "Rollback executed for Entity with id {}, adding a State with id {}", entity.getId(), result.getId());
-				return Optional.of(result);
-			}).orElseGet(() -> {
-				log.info(LOGGER_TAG + "Failed rollback for Entity with id {}, only one CURRENT State available", entity.getId());
-				return Optional.empty();
-			});
-		}).orElseGet(() -> {
-			log.info(LOGGER_TAG + "Failed rollback for Entity with id {}, there is no CURRENT State available", entity.getId());
-			return Optional.empty();
-		});
+                log.info(LOGGER_TAG + "Rollback executed for Entity with id {}, adding a State with id {}", entity.getId(), result.getId());
+                return Optional.of(result);
+            }).orElseGet(() -> {
+                log.info(LOGGER_TAG + "Failed rollback for Entity with id {}, only one CURRENT State available", entity.getId());
+                return Optional.empty();
+            });
+        }).orElseGet(() -> {
+            log.info(LOGGER_TAG + "Failed rollback for Entity with id {}, there is no CURRENT State available", entity.getId());
+            return Optional.empty();
+        });
 
-		return Stream.of(new NodeOutput(newState));
-	}
+        return Stream.of(new NodeOutput(newState));
+    }
 
-	/**
-	 * This method returns the first available State node, by a given State node to rollback
-	 *
-	 * @param state state to rollback
-	 * @return the first available rollback node
-	 */
-	private Optional<Node> getFirstAvailableRollbackNode(Node state) {
-		return StreamSupport.stream(state.getRelationships(RelationshipType.withName(ROLLBACK_TYPE), Direction.OUTGOING).spliterator(), false).findFirst()
-				// Recursive iteration for ROLLBACKed State node
-				.map(e -> getFirstAvailableRollbackNode(e.getEndNode()))
-				// No ROLLBACK relationship found
-				.orElse(StreamSupport.stream(state.getRelationships(RelationshipType.withName(PREVIOUS_TYPE), Direction.OUTGOING).spliterator(), false)
-						.findFirst().map(Relationship::getEndNode));
-	}
+    @Procedure(value = "graph.versioner.rollback.to", mode = WRITE)
+    @Description("graph.versioner.rollback.to(entity, state, date) - Rollback the given Entity to the given State")
+    public Stream<NodeOutput> rollbackTo(
+            @Name("entity") Node entity,
+            @Name("state") Node state,
+            @Name(value = "date", defaultValue = "0") long date) {
+
+        long instantDate = (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
+        Optional<Node> newState = Optional.empty();
+
+        // If the given State is the CURRENT one, null must be returned
+        Spliterator<Relationship> currentRelIterator = state.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.INCOMING).spliterator();
+        Optional<Relationship> currentRelationshipOptional = StreamSupport.stream(currentRelIterator, false).filter(Objects::nonNull).findFirst();
+        if (!currentRelationshipOptional.isPresent()) {
+            // If the given State already has a ROLLBACK relationship, null must be returned
+            Spliterator<Relationship> rollbackRelIterator = state.getRelationships(RelationshipType.withName(ROLLBACK_TYPE), Direction.OUTGOING).spliterator();
+            Optional<Relationship> rollbackRelationshipOptional = StreamSupport.stream(rollbackRelIterator, false).filter(Objects::nonNull).findFirst();
+            if (!rollbackRelationshipOptional.isPresent()) {
+                // Otherwise, the node can be rolled back
+                currentRelIterator = entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING).spliterator();
+                currentRelationshipOptional = StreamSupport.stream(currentRelIterator, false).filter(Objects::nonNull).findFirst();
+
+                newState = currentRelationshipOptional.map(currentRelationship -> {
+                    Node currentState = currentRelationship.getEndNode();
+                    Long currentDate = (Long) currentRelationship.getProperty("date");
+
+                    // Creating the rollback state, from the previous one
+                    Node result = Utility.cloneNode(db, state);
+
+                    //Creating ROLLBACK_TYPE relationship
+                    result.createRelationshipTo(state, RelationshipType.withName(ROLLBACK_TYPE));
+
+                    // Creating PREVIOUS relationship between the current and the new State
+                    result.createRelationshipTo(currentState, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
+
+                    // Updating the HAS_STATE rel for the current node, adding endDate
+                    currentState.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.INCOMING)
+                            .forEach(hasStatusRel -> hasStatusRel.setProperty(END_DATE_PROP, instantDate));
+
+                    // Refactoring current relationship and adding the new ones
+                    currentRelationship.delete();
+                    entity.createRelationshipTo(result, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, instantDate);
+                    entity.createRelationshipTo(result, RelationshipType.withName(HAS_STATE_TYPE)).setProperty(START_DATE_PROP, instantDate);
+
+                    log.info(LOGGER_TAG + "Rollback executed for Entity with id {}, adding a State with id {}", entity.getId(), result.getId());
+
+                    return Optional.of(result);
+                }).orElseGet(() -> {
+                    log.info(LOGGER_TAG + "Failed rollback for Entity with id {}, there is no CURRENT State available", entity.getId());
+                    return Optional.empty();
+                });
+            }
+        }
+
+        return Stream.of(new NodeOutput(newState));
+    }
+
+    /**
+     * This method returns the first available State node, by a given State node to rollback
+     *
+     * @param state state to rollback
+     * @return the first available rollback node
+     */
+    private Optional<Node> getFirstAvailableRollbackNode(Node state) {
+        return StreamSupport.stream(state.getRelationships(RelationshipType.withName(ROLLBACK_TYPE), Direction.OUTGOING).spliterator(), false).findFirst()
+                // Recursive iteration for ROLLBACKed State node
+                .map(e -> getFirstAvailableRollbackNode(e.getEndNode()))
+                // No ROLLBACK relationship found
+                .orElse(StreamSupport.stream(state.getRelationships(RelationshipType.withName(PREVIOUS_TYPE), Direction.OUTGOING).spliterator(), false)
+                        .findFirst().map(Relationship::getEndNode));
+    }
 }
 
