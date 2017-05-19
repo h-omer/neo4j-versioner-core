@@ -1,8 +1,6 @@
 package org.homer.graph.versioner;
 
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.*;
 
 import java.util.*;
 import java.util.stream.StreamSupport;
@@ -60,17 +58,58 @@ public class Utility {
         return new Label[]{Label.label(labelName)};
     }
 
-	/**
+    /**
      * Creates a new node copying properties and labels form a given one
      *
-	 * @param db a {@link GraphDatabaseService} representing the database where the node will be created
+     * @param db   a {@link GraphDatabaseService} representing the database where the node will be created
      * @param node a {@link Node} representing the node to clone
      * @return {@link Node}
      */
     public static Node cloneNode(GraphDatabaseService db, Node node) {
-		List<String> labelNames = new ArrayList<>();
-		Spliterator<Label> labelsIterator = node.getLabels().spliterator();
-		StreamSupport.stream(labelsIterator, false).forEach(label -> labelNames.add(label.name()));
-		return setProperties(db.createNode(labels(labelNames)), node.getAllProperties());
+        List<String> labelNames = new ArrayList<>();
+        Spliterator<Label> labelsIterator = node.getLabels().spliterator();
+        StreamSupport.stream(labelsIterator, false).forEach(label -> labelNames.add(label.name()));
+        return setProperties(db.createNode(labels(labelNames)), node.getAllProperties());
+    }
+
+    /**
+     * Updates an Entity node CURRENT State with the new current one, it will handle all the
+     * HAS_STATE / CURRENT / PREVIOUS relationships creation/update
+     *
+     * @param entity              a {@link Node} representing the Entity
+     * @param instantDate         the new current State date
+     * @param currentRelationship a {@link Relationship} representing the current CURRENT relationship
+     * @param currentState        a {@link Node} representing the current State
+     * @param currentDate         the current State date
+     * @param result              a {@link Node} representing the new current State
+     * @return {@link Node}
+     */
+    public static Node currentStateUpdate(Node entity, long instantDate, Relationship currentRelationship, Node currentState, Long currentDate, Node result) {
+        // Creating PREVIOUS relationship between the current and the new State
+        result.createRelationshipTo(currentState, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
+
+        // Updating the HAS_STATE rel for the current node, adding endDate
+        currentState.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.INCOMING)
+                .forEach(hasStatusRel -> hasStatusRel.setProperty(END_DATE_PROP, instantDate));
+
+        // Refactoring current relationship and adding the new ones
+        currentRelationship.delete();
+
+        // Connecting the new current state to the Entity
+        addCurrentState(result, entity, instantDate);
+
+        return result;
+    }
+
+    /**
+     * Connects a new State {@link Node} as the Current one, to the given Entity
+     *
+     * @param state       a {@link Node} representing the new current State
+     * @param entity      a {@link Node} representing the Entity
+     * @param instantDate the new current State date
+     */
+    public static void addCurrentState(Node state, Node entity, long instantDate) {
+        entity.createRelationshipTo(state, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, instantDate);
+        entity.createRelationshipTo(state, RelationshipType.withName(HAS_STATE_TYPE)).setProperty(START_DATE_PROP, instantDate);
     }
 }

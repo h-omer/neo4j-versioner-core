@@ -1,6 +1,5 @@
 package org.homer.graph.versioner.procedure;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.driver.v1.*;
@@ -19,6 +18,10 @@ public class RollbackTest {
 
             // This is the function we want to test
             .withProcedure(Rollback.class);
+
+    /*------------------------------*/
+    /*           rollback           */
+    /*------------------------------*/
 
     @Test
     public void shouldGetOldNodeAfterARollbackOnATwoStateEntityNode() {
@@ -62,7 +65,7 @@ public class RollbackTest {
             session.run("MATCH (new:State)<-[:HAS_STATE {startDate:593900000000, endDate:593910000000}]-(e:Entity)-[:HAS_STATE {startDate:593800000000, endDate:593900000000}]->(old:State) CREATE (new)-[:PREVIOUS {date:593800000000}]->(old)");
 
             // When
-            StatementResult firstResult = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.rollback(e) YIELD node RETURN node");
+            session.run("MATCH (e:Entity) WITH e CALL graph.versioner.rollback(e) YIELD node RETURN node");
             StatementResult finalResult = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.rollback(e) YIELD node RETURN node");
 
             // Then
@@ -104,6 +107,10 @@ public class RollbackTest {
             }
         }
     }
+
+    /*------------------------------*/
+    /*          rollback.to         */
+	/*------------------------------*/
 
     @Test
     public void shouldRollbackToTheGivenStateNode() {

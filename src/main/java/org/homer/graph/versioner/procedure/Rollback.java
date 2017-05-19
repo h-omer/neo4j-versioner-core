@@ -55,17 +55,9 @@ public class Rollback {
                 //Creating ROLLBACK_TYPE relationship
                 result.createRelationshipTo(rollbackState, RelationshipType.withName(ROLLBACK_TYPE));
 
-                // Creating PREVIOUS relationship between the current and the new State
-                result.createRelationshipTo(currentState, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
+                // Updating CURRENT state
+                result = currentStateUpdate(entity, instantDate, currentRelationship, currentState, currentDate, result);
 
-                // Updating the HAS_STATE rel for the current node, adding endDate
-                currentState.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.INCOMING)
-                        .forEach(hasStatusRel -> hasStatusRel.setProperty(END_DATE_PROP, instantDate));
-
-                // Refactoring current relationship and adding the new ones
-                currentRelationship.delete();
-                entity.createRelationshipTo(result, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, instantDate);
-                entity.createRelationshipTo(result, RelationshipType.withName(HAS_STATE_TYPE)).setProperty(START_DATE_PROP, instantDate);
 
                 log.info(LOGGER_TAG + "Rollback executed for Entity with id {}, adding a State with id {}", entity.getId(), result.getId());
                 return Optional.of(result);
@@ -113,17 +105,8 @@ public class Rollback {
                     //Creating ROLLBACK_TYPE relationship
                     result.createRelationshipTo(state, RelationshipType.withName(ROLLBACK_TYPE));
 
-                    // Creating PREVIOUS relationship between the current and the new State
-                    result.createRelationshipTo(currentState, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
-
-                    // Updating the HAS_STATE rel for the current node, adding endDate
-                    currentState.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.INCOMING)
-                            .forEach(hasStatusRel -> hasStatusRel.setProperty(END_DATE_PROP, instantDate));
-
-                    // Refactoring current relationship and adding the new ones
-                    currentRelationship.delete();
-                    entity.createRelationshipTo(result, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, instantDate);
-                    entity.createRelationshipTo(result, RelationshipType.withName(HAS_STATE_TYPE)).setProperty(START_DATE_PROP, instantDate);
+                    // Updating CURRENT state
+                    result = currentStateUpdate(entity, instantDate, currentRelationship, currentState, currentDate, result);
 
                     log.info(LOGGER_TAG + "Rollback executed for Entity with id {}, adding a State with id {}", entity.getId(), result.getId());
 

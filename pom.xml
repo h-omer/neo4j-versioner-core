@@ -1,110 +1,110 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.homer</groupId>
-  <artifactId>neo4j-graph-versioner</artifactId>
-  <version>0.1</version>
+    <groupId>org.homer</groupId>
+    <artifactId>neo4j-graph-versioner</artifactId>
+    <version>0.1</version>
 
-  <packaging>jar</packaging>
-  <name>Neo4j Graph Versioner</name>
-  <description>Neo4j Procedures for Graph Versioning</description>
+    <packaging>jar</packaging>
+    <name>Neo4j Graph Versioner</name>
+    <description>Neo4j Procedures for Graph Versioning</description>
 
-  <licenses>
-    <license>
-      <name>Apache License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
-  <developers>
-    <developer>
-      <id>albertodeste</id>
-      <name>Alberto D'Este</name>
-    </developer>
-    <developer>
-      <id>mfalcier</id>
-      <name>Marco Falcier</name>
-    </developer>
-  </developers>
+    <developers>
+        <developer>
+            <id>albertodeste</id>
+            <name>Alberto D'Este</name>
+        </developer>
+        <developer>
+            <id>mfalcier</id>
+            <name>Marco Falcier</name>
+        </developer>
+    </developers>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <neo4j.version>3.2.0</neo4j.version>
-    <neo4j.driver.version>1.3.0</neo4j.driver.version>
-    <java.version>1.8</java.version>
-    <junit.version>4.12</junit.version>
-  </properties>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <neo4j.version>3.2.0</neo4j.version>
+        <neo4j.driver.version>1.3.0</neo4j.driver.version>
+        <java.version>1.8</java.version>
+        <junit.version>4.12</junit.version>
+    </properties>
 
-  <dependencies>
-    <dependency>
-      <!-- This gives us the Procedure API our runtime code uses.
-           We have a `provided` scope on it, because when this is
-           deployed in a Neo4j Instance, the API will be provided
-           by Neo4j. If you add non-Neo4j dependencies to this
-           project, their scope should normally be `compile` -->
-      <groupId>org.neo4j</groupId>
-      <artifactId>neo4j</artifactId>
-      <version>${neo4j.version}</version>
-      <scope>provided</scope>
-    </dependency>
+    <dependencies>
+        <dependency>
+            <!-- This gives us the Procedure API our runtime code uses.
+                 We have a `provided` scope on it, because when this is
+                 deployed in a Neo4j Instance, the API will be provided
+                 by Neo4j. If you add non-Neo4j dependencies to this
+                 project, their scope should normally be `compile` -->
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j</artifactId>
+            <version>${neo4j.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
-    <!-- Test Dependencies -->
-    <dependency>
-      <!-- This is used for a utility that lets us start Neo4j with
-           a specific Procedure, which is nice for writing tests. -->
-      <groupId>org.neo4j.test</groupId>
-      <artifactId>neo4j-harness</artifactId>
-      <version>${neo4j.version}</version>
-      <scope>test</scope>
-    </dependency>
+        <!-- Test Dependencies -->
+        <dependency>
+            <!-- This is used for a utility that lets us start Neo4j with
+                 a specific Procedure, which is nice for writing tests. -->
+            <groupId>org.neo4j.test</groupId>
+            <artifactId>neo4j-harness</artifactId>
+            <version>${neo4j.version}</version>
+            <scope>test</scope>
+        </dependency>
 
-    <dependency>
-      <!-- Used to send cypher statements to our procedure. -->
-      <groupId>org.neo4j.driver</groupId>
-      <artifactId>neo4j-java-driver</artifactId>
-      <version>${neo4j.driver.version}</version>
-      <scope>test</scope>
-    </dependency>
+        <dependency>
+            <!-- Used to send cypher statements to our procedure. -->
+            <groupId>org.neo4j.driver</groupId>
+            <artifactId>neo4j-java-driver</artifactId>
+            <version>${neo4j.driver.version}</version>
+            <scope>test</scope>
+        </dependency>
 
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
-        <configuration>
-          <!-- Neo4j Procedures require Java 8 -->
-          <source>${java.version}</source>
-          <target>${java.version}</target>
-        </configuration>
-      </plugin>
-      <plugin>
-        <!-- This generates a jar-file with our procedure code,
-             plus any dependencies marked as `compile` scope.
-             This should then be deployed in the `plugins` directory
-             of each Neo4j instance in your deployment.
-             After a restart, the procedure is available for calling. -->
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>2.4.3</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <!-- Neo4j Procedures require Java 8 -->
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <!-- This generates a jar-file with our procedure code,
+                     plus any dependencies marked as `compile` scope.
+                     This should then be deployed in the `plugins` directory
+                     of each Neo4j instance in your deployment.
+                     After a restart, the procedure is available for calling. -->
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

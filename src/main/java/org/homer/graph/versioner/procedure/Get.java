@@ -111,6 +111,12 @@ public class Get {
         return result.parallelStream().map(NodeOutput::new);
     }
 
+    /**
+     * Returns a {@link ResourceIterator<Path>} with the current {@link Path}}
+     *
+     * @param node a {@link Node} representing the current State
+     * @return a {@link ResourceIterator<Path>} with the current {@link Path}
+     */
     private ResourceIterator<Path> getCurrentPathResourceIterator(Node node) {
         String query = "MATCH path=(e)-[c:%s]->(s:%s) WHERE id(e)=%d RETURN path";
 

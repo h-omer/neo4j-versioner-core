@@ -12,7 +12,6 @@ import org.neo4j.harness.junit.Neo4jRule;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Spliterator;
 
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
@@ -27,6 +26,10 @@ public class GetTest {
 
             // This is the function we want to test
             .withProcedure(Get.class);
+
+    /*------------------------------*/
+    /*       get.current.path       */
+    /*------------------------------*/
 
     @Test
     public void shouldGetCurrentPathByGivenEntity() {
@@ -57,6 +60,10 @@ public class GetTest {
         }
     }
 
+    /*------------------------------*/
+    /*      get.current.state       */
+	/*------------------------------*/
+
     @Test
     public void shouldGetCurrentStateByGivenEntity() {
         // This is in a try-block, to make sure we close the driver after the test
@@ -73,6 +80,10 @@ public class GetTest {
             assertThat(result.single().get("node").asNode(), equalTo(state));
         }
     }
+
+    /*------------------------------*/
+	/*            get.all           */
+	/*------------------------------*/
 
     @Test
     public void shouldGetAllStateNodesByGivenEntity() {
@@ -135,6 +146,10 @@ public class GetTest {
         }
     }
 
+    /*------------------------------*/
+	/*         get.by.label         */
+	/*------------------------------*/
+
     @Test
     public void shouldGetOneErrorStateNodeByGivenErrorLabel() {
         // This is in a try-block, to make sure we close the driver after the test
@@ -186,6 +201,10 @@ public class GetTest {
             }
         }
     }
+
+    /*------------------------------*/
+	/*         get.by.date          */
+	/*------------------------------*/
 
     @Test
     public void shouldGetSpecificStateNodeByGivenEntityAndDate() {

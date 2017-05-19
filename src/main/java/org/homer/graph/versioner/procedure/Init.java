@@ -3,7 +3,6 @@ package org.homer.graph.versioner.procedure;
 import org.homer.graph.versioner.output.NodeOutput;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
@@ -48,8 +47,9 @@ public class Init {
             Node state = setProperties(db.createNode(labels(labelNames)), stateProps);
 
             long instantDate = (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
-            entity.createRelationshipTo(state, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, instantDate);
-            entity.createRelationshipTo(state, RelationshipType.withName(HAS_STATE_TYPE)).setProperty(START_DATE_PROP, instantDate);
+
+            // Connecting the new current state to the Entity
+            addCurrentState(state, entity, instantDate);
         }
 
         log.info(LOGGER_TAG + "Created a new Entity with label {} and id {}", entityLabel, entity.getId());
