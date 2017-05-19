@@ -1,6 +1,6 @@
 # Neo4j Graph Versioner Documentation
 
-Neo4j Graph Versioner is made of a series of procedures, meant to be used in order to help developers to manage the Entity-State model, by creating, updating and querying the graph.
+Neo4j Graph Versioner is a collection of procedures, aimed to help developers to manage the Entity-State model, by creating, updating and querying the graph.
 
 ## License
 
@@ -18,8 +18,8 @@ Neo4j Graph Versioner has been developed by [Alberto D'Este](https://github.com/
 
 ## Data Model
 
-The current data model uses two kind of nodes: the Entity nodes, created by the user through a given Label and the `State` node, managed by the Graph Versioner.
-The `State` node can be saw as the set of mutable properties which regards the Entity, which instead has got only immutable properties.
+The current data model uses two kind of nodes: the Entity nodes, created by the user through a given Label and the `State` nodes, managed by the Graph Versioner.
+The `State` node can be seen as the set of mutable properties which regards the Entity, which possesses only immutable properties.
 There are 4 different relationships:
 * `(:Entity)-[:CURRENT {date: 123456789}]-(:State)`, representing the current Entity `State`;
 * `(:Entity)-[:HAS_STATE {startDate: 123456788, endDate: 123456789}]-(State)`, representing an Entity `State`, it will have an endDate only if the `State` node is not the current one;
@@ -379,4 +379,4 @@ MATCH (d:Device)-[:HAS_STATE]->(s:State {code:2}) WITH d, s CALL graph.versioner
 
 # Feedback
 
-We would love to know what do you think about the Graph Versioner, how to improve it and how to fix (we hope not so many! :see_no_evil:) bad things. Say yours in the [issue](https://github.com/h-omer/neo4j-graph-versioner/issues) section.
+We would appreciate your feedback about our Graph Versioner, how to improve and fix (we hope not so many!) any bad things. Say yours in the [issue](https://github.com/h-omer/neo4j-graph-versioner/issues) section.

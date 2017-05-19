@@ -2,7 +2,7 @@
 
 # Neo4j Graph Versioner
 
-Neo4j Graph Versioner is made of a series of procedures, meant to be used in order to help developers to manage the Entity-State model, by creating, updating and querying the graph.
+Neo4j Graph Versioner is a collection of procedures, aimed to help developers to manage the Entity-State model, by creating, updating and querying the graph.
 
 ## License
 
@@ -42,4 +42,4 @@ You can find the full documentation [here](https://h-omer.github.io/neo4j-graph-
 
 ## Feedback
 
-We would love to know what do you think about the Graph Versioner, how to improve it and how to fix (we hope not so many! :see_no_evil:) bad things. Say yours in the [issue](https://github.com/h-omer/neo4j-graph-versioner/issues) section.
+We would appreciate your feedback about our Graph Versioner, how to improve and fix (we hope not so many! :see_no_evil:) any bad things. Say yours in the [issue](https://github.com/h-omer/neo4j-graph-versioner/issues) section.
