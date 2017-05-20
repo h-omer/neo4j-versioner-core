@@ -19,6 +19,12 @@ public class Utility {
     public static final String START_DATE_PROP = "startDate";
     public static final String END_DATE_PROP = "endDate";
     public static final String LOGGER_TAG = "[graph-versioner] - ";
+    /*   DIFF OPERATIONS   */
+    public static final String DIFF_OPERATION_REMOVE = "REMOVE";
+    public static final String DIFF_OPERATION_ADD = "ADD";
+    public static final String DIFF_OPERATION_UPDATE = "UPDATE";
+    public static final List<String> DIFF_OPERATIONS_SORTING = Arrays.asList(DIFF_OPERATION_REMOVE, DIFF_OPERATION_UPDATE, DIFF_OPERATION_ADD);
+
 
     /**
      * Sets a {@link Map} of properties to a {@link Node}
