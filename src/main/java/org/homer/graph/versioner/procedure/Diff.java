@@ -18,7 +18,7 @@ import static org.homer.graph.versioner.Utility.*;
 public class Diff {
 
     @Procedure(value = "graph.versioner.diff", mode = DEFAULT)
-    @Description("graph.versioner.diff(stateFrom, stateTo) - Get a list of differences to apply to stateFrom to convert it to stateTo")
+    @Description("graph.versioner.diff(stateFrom, stateTo) - Get a list of differences that must be applied to stateFrom in order to convert it into stateTo")
     public Stream<DiffOutput> diff(
             @Name("stateFrom") Node stateFrom,
             @Name("stateTo") Node stateTo) {
@@ -26,7 +26,7 @@ public class Diff {
     }
 
     @Procedure(value = "graph.versioner.diff.from.previous", mode = DEFAULT)
-    @Description("graph.versioner.diff.from.previous(state) - Get a list of differences to apply to the status previous of the given one to become the given state")
+    @Description("graph.versioner.diff.from.previous(state) - Get a list of differences that must be applied to the previous statusof the given one in order to become the given state")
     public Stream<DiffOutput> diffFromPrevious(
             @Name("state") Node state) {
 
@@ -42,7 +42,7 @@ public class Diff {
     }
 
 	@Procedure(value = "graph.versioner.diff.from.current", mode = DEFAULT)
-	@Description("graph.versioner.diff.from.current(state) - Get a list of differences to apply to the given state to become the current entity state")
+	@Description("graph.versioner.diff.from.current(state) - Get a list of differences that must be applied to the given state in order to become the current entity state")
 	public Stream<DiffOutput> diffFromCurrent(
 			@Name("state") Node state) {
 
@@ -59,6 +59,13 @@ public class Diff {
 		return result;
 	}
 
+	/**
+	 * It returns a {@link Stream<DiffOutput>} by the given nodes
+	 *
+	 * @param from
+	 * @param to
+	 * @return a {@link Stream<DiffOutput>}
+	 */
 	private Stream<DiffOutput> diffBetweenStates(Optional<Node> from, Optional<Node> to) {
 		List<DiffOutput> diffs = new ArrayList<>();
 
@@ -84,6 +91,13 @@ public class Diff {
 		return diffs.stream().sorted((a, b) -> Integer.compare(DIFF_OPERATIONS_SORTING.indexOf(a.operation), DIFF_OPERATIONS_SORTING.indexOf(b.operation)));
 	}
 
+	/**
+	 * It compares 2 objects and return true if equals, false instead
+	 *
+	 * @param val
+	 * @param value
+	 * @return true if equals, false instead
+	 */
 	private boolean compareObj(Object val, Object value){
 		if(val.getClass().isArray() && value.getClass().isArray()){
 			return (val instanceof boolean[] && value instanceof boolean[] && Arrays.equals((boolean[])val, (boolean[])value))

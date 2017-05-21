@@ -58,7 +58,9 @@ name | parameters | return values | description
 [graph.versioner.get.by.date](#get-by-date) | **entity**, date | **node** | Get State node by the given Entity node, created at the given date.
 [graph.versioner.rollback](#rollback) | **entity**, *date* | **node** | Rollback the current State to the first available one.
 [graph.versioner.rollback.to](#rollback-to) | **entity**, **state**, *date* | **node** | Rollback the current State to the given one.
-
+[graph.versioner.diff](#diff) | **stateFrom**, **stateTo** | diff | Get a list of differences that must be applied to stateFrom in order to convert it into stateTo.
+[graph.versioner.diff.from.previous](#diff-from-previous) | **state** | diff | Get a list of differences that must be applied to the previous statusof the given one in order to become the given state.
+[graph.versioner.diff.from.current](#diff-from-current) | **state** | diff | Get a list of differences that must be applied to the given state in order to become the current entity state.
 
 ## init
 
@@ -375,6 +377,100 @@ node | node
 
 ```cypher
 MATCH (d:Device)-[:HAS_STATE]->(s:State {code:2}) WITH d, s CALL graph.versioner.rollback.to(d, s, 593920000000) YIELD node RETURN node
+```
+
+## diff
+
+This procedure will offer a list of operation needed in order to obtain a given `State` node, from another given one.
+It will return all the properties of both nodes, coupled with an operation.
+Those possible operations are:
+* **REMOVE** - if the property should be removed
+* **ADD** - if the property is a new one
+* **UPDATE** - if the property has changed
+
+### Details
+
+#### Name
+
+`graph.versioner.diff`
+
+#### Parameters
+
+name | necessity | detail 
+---- | --------- | ------
+`stateFrom` | mandatory | The starting State node for the comparison.
+`stateTo` | mandatory | The ending State node for the comparison.
+
+#### Return value
+
+name | type 
+---- | ----
+diff | diff
+
+### Example call
+
+```cypher
+MATCH (stateFrom:State {code:2}), (stateTo:State {code:3}) WITH stateFrom, stateTo CALL graph.versioner.diff(stateFrom, stateTo) YIELD diff RETURN diff
+```
+
+## diff from previous
+
+This procedure will offer a list of operation needed in order to obtain a given `State` node, from its previous one.
+It will return all the properties of both nodes, coupled with an operation (see [diff](#diff)] procedure for more information).
+
+
+### Details
+
+#### Name
+
+`graph.versioner.diff.from.previous`
+
+#### Parameters
+
+name | necessity | detail 
+---- | --------- | ------
+`state` | mandatory | The ending State node for the comparison.
+
+#### Return value
+
+name | type 
+---- | ----
+diff | diff
+
+### Example call
+
+```cypher
+MATCH (s:State {code:2}) WITH s CALL graph.versioner.diff.from.previous(s) YIELD diff RETURN diff
+```
+
+## diff from current
+
+This procedure will offer a list of operation needed in order to obtain a given `State` node, from the current one.
+It will return all the properties of both nodes, coupled with an operation (see [diff](#diff)] procedure for more information).
+
+
+### Details
+
+#### Name
+
+`graph.versioner.diff.from.current`
+
+#### Parameters
+
+name | necessity | detail 
+---- | --------- | ------
+`state` | mandatory | The starting State node for the comparison.
+
+#### Return value
+
+name | type 
+---- | ----
+diff | diff
+
+### Example call
+
+```cypher
+MATCH (s:State {code:2}) WITH s CALL graph.versioner.diff.from.current(s) YIELD diff RETURN diff
 ```
 
 # Feedback
