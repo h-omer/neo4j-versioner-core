@@ -81,6 +81,7 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-junit</artifactId>
             <version>${hamcrest.junit.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
