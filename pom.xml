@@ -5,7 +5,7 @@
 
     <groupId>org.homer</groupId>
     <artifactId>neo4j-graph-versioner</artifactId>
-    <version>0.1</version>
+    <version>1.0</version>
 
     <packaging>jar</packaging>
     <name>Neo4j Graph Versioner</name>
@@ -41,11 +41,6 @@
 
     <dependencies>
         <dependency>
-            <!-- This gives us the Procedure API our runtime code uses.
-                 We have a `provided` scope on it, because when this is
-                 deployed in a Neo4j Instance, the API will be provided
-                 by Neo4j. If you add non-Neo4j dependencies to this
-                 project, their scope should normally be `compile` -->
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j</artifactId>
             <version>${neo4j.version}</version>
@@ -54,8 +49,6 @@
 
         <!-- Test Dependencies -->
         <dependency>
-            <!-- This is used for a utility that lets us start Neo4j with
-                 a specific Procedure, which is nice for writing tests. -->
             <groupId>org.neo4j.test</groupId>
             <artifactId>neo4j-harness</artifactId>
             <version>${neo4j.version}</version>
@@ -63,7 +56,6 @@
         </dependency>
 
         <dependency>
-            <!-- Used to send cypher statements to our procedure. -->
             <groupId>org.neo4j.driver</groupId>
             <artifactId>neo4j-java-driver</artifactId>
             <version>${neo4j.driver.version}</version>
@@ -91,17 +83,11 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
-                    <!-- Neo4j Procedures require Java 8 -->
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                 </configuration>
             </plugin>
             <plugin>
-                <!-- This generates a jar-file with our procedure code,
-                     plus any dependencies marked as `compile` scope.
-                     This should then be deployed in the `plugins` directory
-                     of each Neo4j instance in your deployment.
-                     After a restart, the procedure is available for calling. -->
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>2.4.3</version>
                 <executions>

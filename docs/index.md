@@ -32,7 +32,7 @@ This is how the data model looks like:
 
 ## Use cases
 
-You can find some examples and use cases in the repository [wiki](https://github.com/h-omer/neo4j-graph-versioner/wiki).
+You can find some examples and use cases in the repository [wiki](https://github.com/h-omer/neo4j-graph-versioner/wiki) (work in progress!).
 
 # Procedures Reference
 
