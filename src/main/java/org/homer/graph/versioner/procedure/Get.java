@@ -21,7 +21,7 @@ import static org.neo4j.procedure.Mode.DEFAULT;
 public class Get {
 
     @Procedure(value = "graph.versioner.get.current.path", mode = DEFAULT)
-    @Description("graph.versioner.get.current.path(entity) - Get a the current Path (Entity, State and rels) for the given Entity.")
+    @Description("graph.versioner.get.current.path(entity) - Get the current Path (Entity, State and rels) for the given Entity.")
     public Stream<PathOutput> getCurrentPath(
             @Name("entity") Node entity) {
 

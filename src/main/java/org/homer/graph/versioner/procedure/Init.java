@@ -1,5 +1,6 @@
 package org.homer.graph.versioner.procedure;
 
+import org.homer.graph.versioner.core.CoreProcedure;
 import org.homer.graph.versioner.output.NodeOutput;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -18,13 +19,7 @@ import static org.homer.graph.versioner.Utility.*;
 /**
  * Init class, it contains all the Procedures needed to initialize an Entity node
  */
-public class Init {
-
-    @Context
-    public GraphDatabaseService db;
-
-    @Context
-    public Log log;
+public class Init extends CoreProcedure{
 
     @Procedure(value = "graph.versioner.init", mode = Mode.WRITE)
     @Description("graph.versioner.init(entityLabel, {key:value,...}, {key:value,...}, additionalLabel, date) - Create an Entity node with an optional initial State.")

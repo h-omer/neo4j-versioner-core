@@ -1,6 +1,7 @@
 package org.homer.graph.versioner.procedure;
 
 import org.homer.graph.versioner.Utility;
+import org.homer.graph.versioner.core.CoreProcedure;
 import org.homer.graph.versioner.output.NodeOutput;
 import org.neo4j.graphdb.*;
 import org.neo4j.logging.Log;
@@ -22,13 +23,7 @@ import static org.neo4j.procedure.Mode.WRITE;
 /**
  * Rollback class, it contains all the Procedures needed to rollback Entities' States nodes in the database
  */
-public class Rollback {
-
-    @Context
-    public GraphDatabaseService db;
-
-    @Context
-    public Log log;
+public class Rollback extends CoreProcedure {
 
     @Procedure(value = "graph.versioner.rollback", mode = WRITE)
     @Description("graph.versioner.rollback(entity, date) - Rollback the given Entity to its previous State")

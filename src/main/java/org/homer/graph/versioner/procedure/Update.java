@@ -1,5 +1,6 @@
 package org.homer.graph.versioner.procedure;
 
+import org.homer.graph.versioner.core.CoreProcedure;
 import org.homer.graph.versioner.output.NodeOutput;
 import org.neo4j.graphdb.*;
 import org.neo4j.logging.Log;
@@ -14,13 +15,7 @@ import static org.homer.graph.versioner.Utility.*;
 /**
  * Update class, it contains all the Procedures needed to update Entities' States
  */
-public class Update {
-
-    @Context
-    public GraphDatabaseService db;
-
-    @Context
-    public Log log;
+public class Update extends CoreProcedure {
 
     @Procedure(value = "graph.versioner.update", mode = Mode.WRITE)
     @Description("graph.versioner.update(entity, {key:value,...}, additionalLabel, date) - Add a new State to the given Entity.")
