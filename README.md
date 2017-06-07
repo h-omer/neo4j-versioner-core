@@ -1,8 +1,8 @@
-[![Build Status](https://travis-ci.org/h-omer/neo4j-graph-versioner.svg?branch=master)](https://travis-ci.org/h-omer/neo4j-graph-versioner)
+[![Build Status](https://travis-ci.org/h-omer/neo4j-core-versioner.svg?branch=master)](https://travis-ci.org/h-omer/neo4j-core-versioner)
 
-# Neo4j Graph Versioner
+# Neo4j Core Versioner
 
-Neo4j Graph Versioner is a collection of procedures, aimed to help developers to manage the Entity-State model, by creating, updating and querying the graph.
+Neo4j Core Versioner is a collection of procedures, aimed to help developers to manage the Entity-State model, by creating, updating and querying the graph.
 
 ## License
 
@@ -10,17 +10,17 @@ Apache License 2.0
 
 ## Installation
 
-1. Download the latest [release](https://github.com/h-omer/neo4j-graph-versioner/releases);
+1. Download the latest [release](https://github.com/h-omer/neo4j-core-versioner/releases);
 2. Put the downloaded jar file into `$NEO4J_HOME/plugins` folder;
 3. Start/Restart Neo4j.
 
 ## About
 
-Neo4j Graph Versioner has been developed by [Alberto D'Este](https://github.com/albertodeste) and [Marco Falcier](https://github.com/mfalcier).
+Neo4j Core Versioner has been developed by [Alberto D'Este](https://github.com/albertodeste) and [Marco Falcier](https://github.com/mfalcier).
 
 It's based on the following data model: 
 
-![Data Model](https://raw.githubusercontent.com/h-omer/neo4j-graph-versioner/master/docs/images/data-model.png)
+![Data Model](https://raw.githubusercontent.com/h-omer/neo4j-core-versioner/master/docs/images/data-model.png)
 
 ## Examples
 
@@ -36,10 +36,17 @@ And how to retrieve the current `State`:
 MATCH (d:Device) WITH d CALL graph.versioner.get.current.state(d) YIELD node RETURN node
 ```
 
+If you want to use Neo4j Core Versioner procedures on your procedures/functions you simply create a new instance:
+
+```java
+Optional<Init> result = new InitBuilder().withDb(db).withLog(log).build();
+result.ifPresent(a -> a.init("EntityLabel", entityProps, stateProps, additionalLabel, date));
+```
+
 ## Full documentation
 
-You can find the full documentation [here](https://h-omer.github.io/neo4j-graph-versioner/).
+You can find the full documentation [here](https://h-omer.github.io/neo4j-core-versioner/).
 
 ## Feedback
 
-We would appreciate your feedback about our Graph Versioner, how to improve and fix (we hope not so many! :see_no_evil:) any bad things. Say yours in the [issue](https://github.com/h-omer/neo4j-graph-versioner/issues) section.
+We would appreciate your feedback about our Core Versioner, how to improve and fix (we hope not so many! :see_no_evil:) any bad things. Say yours in the [issue](https://github.com/h-omer/neo4j-core-versioner/issues) section.

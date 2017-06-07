@@ -1,6 +1,6 @@
-# Neo4j Graph Versioner Documentation
+# Neo4j Core Versioner Documentation
 
-Neo4j Graph Versioner is a collection of procedures, aimed to help developers to manage the Entity-State model, by creating, updating and querying the graph.
+Neo4j Core Versioner is a collection of procedures, aimed to help developers to manage the Entity-State model, by creating, updating and querying the graph.
 
 ## License
 
@@ -8,13 +8,13 @@ Apache License 2.0
 
 ## Installation
 
-1. Download the latest [release](https://github.com/h-omer/neo4j-graph-versioner/releases);
+1. Download the latest [release](https://github.com/h-omer/neo4j-core-versioner/releases);
 2. Put the downloaded jar file into `$NEO4J_HOME/plugins` folder;
 3. Start/Restart Neo4j.
 
 # About
 
-Neo4j Graph Versioner has been developed by [Alberto D'Este](https://github.com/albertodeste) and [Marco Falcier](https://github.com/mfalcier).
+Neo4j Core Versioner has been developed by [Alberto D'Este](https://github.com/albertodeste) and [Marco Falcier](https://github.com/mfalcier).
 
 ## Data Model
 
@@ -28,15 +28,51 @@ There are 4 different relationships:
 
 This is how the data model looks like:
 
-![Data Model](https://raw.githubusercontent.com/h-omer/neo4j-graph-versioner/master/docs/images/data-model.png)
+![Data Model](https://raw.githubusercontent.com/h-omer/neo4j-core-versioner/master/docs/images/data-model.png)
 
 ## Use cases
 
-You can find some examples and use cases in the repository [wiki](https://github.com/h-omer/neo4j-graph-versioner/wiki) (work in progress!).
+You can find some examples and use cases in the repository [wiki](https://github.com/h-omer/neo4j-core-versioner/wiki) (work in progress!).
 
 # Procedures Reference
 
 Neo4j procedure documentation can also be found using `CALL dbms.procedures()`.
+
+## How to call Core Versioner Procedures on your procedures/functions
+
+If you want to use Neo4j Core Versioner procedures on your procedures/functions you simply create a new instance:
+
+```java
+Optional<Init> result = new InitBuilder().withDb(db).withLog(log).build();
+result.ifPresent(a -> a.init("EntityLabel", entityProps, stateProps, additionalLabel, date));
+```
+
+* Maven users -> add the following repository and dependency to your `pom.xml` file
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
+<dependency>
+    <groupId>com.github.h-omer</groupId>
+    <artifactId>neo4j-core-versioner</artifactId>
+    <version>1.1-SNAPSHOT</version>
+    <scope>provided</scope>
+</dependency>
+```
+* Gradle users -> add the following repository and dependency to your `build.gradle` file
+```
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+dependencies {
+    compile 'com.github.h-omer:neo4j-core-versioner:1.1-SNAPSHOT'
+}
+```
+Neo4j Core Versioner must be a provided dependency on your project and it must be installed on your neo4j instance.
 
 ## Procedure CheatSheet
 
@@ -167,7 +203,7 @@ This procedure is used to retrieve the current path: by a given Entity node, it 
 
 This is how the returned path looks like:
 
-![Get Current Path](https://raw.githubusercontent.com/h-omer/neo4j-graph-versioner/master/docs/images/get-current-path.png)
+![Get Current Path](https://raw.githubusercontent.com/h-omer/neo4j-core-versioner/master/docs/images/get-current-path.png)
 
 ### Details
 
@@ -228,7 +264,7 @@ This procedure is used to retrieve all Entity's history in a path, including the
 
 Here is how the returned path looks like:
 
-![Get All](https://raw.githubusercontent.com/h-omer/neo4j-graph-versioner/master/docs/images/get-all.png)
+![Get All](https://raw.githubusercontent.com/h-omer/neo4j-core-versioner/master/docs/images/get-all.png)
 
 ### Details
 
@@ -475,4 +511,4 @@ MATCH (s:State {code:2}) WITH s CALL graph.versioner.diff.from.current(s) YIELD 
 
 # Feedback
 
-We would appreciate your feedback about our Graph Versioner, how to improve and fix (we hope not so many!) any bad things. Say yours in the [issue](https://github.com/h-omer/neo4j-graph-versioner/issues) section.
+We would appreciate your feedback about our Core Versioner, how to improve and fix (we hope not so many!) any bad things. Say yours in the [issue](https://github.com/h-omer/neo4j-core-versioner/issues) section.

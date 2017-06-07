@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.homer</groupId>
-    <artifactId>neo4j-graph-versioner</artifactId>
-    <version>1.0</version>
+    <artifactId>neo4j-core-versioner</artifactId>
+    <version>1.1-SNAPSHOT</version>
 
     <packaging>jar</packaging>
-    <name>Neo4j Graph Versioner</name>
+    <name>Neo4j Core Versioner</name>
     <description>Neo4j Procedures for Graph Versioning</description>
 
     <licenses>
