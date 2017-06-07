@@ -47,9 +47,11 @@ Optional<Init> result = new InitBuilder().withDb(db).withLog(log).build();
 result.ifPresent(a -> a.init("EntityLabel", entityProps, stateProps, additionalLabel, date));
 ```
 
-* Maven users -> add the following repository and dependency to your `pom.xml` file
+### Maven users
 
-```
+Add the following repository and dependency to your `pom.xml` file
+
+```xml
 <repositories>
     <repository>
         <id>jitpack.io</id>
@@ -65,7 +67,9 @@ result.ifPresent(a -> a.init("EntityLabel", entityProps, stateProps, additionalL
 </dependency>
 ```
 
-* Gradle users -> add the following repository and dependency to your `build.gradle` file
+### Gradle users
+
+Add the following repository and dependency to your `build.gradle` file
 
 ```
 repositories {
