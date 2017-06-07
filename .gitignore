@@ -20,3 +20,8 @@ hs_err_pid*
 
 # MAC Journaling #
 /.DS_Store
+
+# Gradle #
+.gradle
+/build/
+gradle
