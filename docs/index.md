@@ -48,7 +48,8 @@ result.ifPresent(a -> a.init("EntityLabel", entityProps, stateProps, additionalL
 ```
 
 * Maven users -> add the following repository and dependency to your `pom.xml` file
-```xml
+
+```
 <repositories>
     <repository>
         <id>jitpack.io</id>
@@ -63,7 +64,9 @@ result.ifPresent(a -> a.init("EntityLabel", entityProps, stateProps, additionalL
     <scope>provided</scope>
 </dependency>
 ```
+
 * Gradle users -> add the following repository and dependency to your `build.gradle` file
+
 ```
 repositories {
     maven { url 'https://jitpack.io' }
@@ -72,6 +75,7 @@ dependencies {
     compile 'com.github.h-omer:neo4j-core-versioner:1.1-SNAPSHOT'
 }
 ```
+
 Neo4j Core Versioner must be a provided dependency on your project and it must be installed on your neo4j instance.
 
 ## Procedure CheatSheet
