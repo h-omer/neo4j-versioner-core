@@ -12,9 +12,8 @@ public class RollbackBuilder extends CoreProcedureBuilder<Rollback> {
     /**
      * Constructor method
      *
-     * @param clazz
      */
-    public RollbackBuilder(Class<Rollback> clazz) {
+    public RollbackBuilder() {
         super(Rollback.class);
     }
 

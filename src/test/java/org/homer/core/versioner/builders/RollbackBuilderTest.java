@@ -1,6 +1,6 @@
 package org.homer.core.versioner.builders;
 
-import org.homer.core.versioner.procedure.Init;
+import org.homer.core.versioner.procedure.Rollback;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
@@ -12,15 +12,15 @@ import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 
 /**
- * GlobalBuildersTest class, it contains all the method used to test procedure builders
+ * DiffBuilderTest class, it contains all the method used to test procedure builders
  */
-public class GlobalBuildersTest {
+public class RollbackBuilderTest {
     @Test
-    public void shouldBuildCorrectInstance() {
+    public void shouldBuildCorrectProcedureInstance() {
         GraphDatabaseService db = mock(GraphDatabaseService.class);
         Log log = mock(Log.class);
 
-        Optional<Init> result = new InitBuilder().withDb(db).withLog(log).build();
+        Optional<Rollback> result = new RollbackBuilder().withDb(db).withLog(log).build();
 
         assertThat(result.isPresent(), is(true));
         assertThat(result.get().db, is(db));
