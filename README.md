@@ -1,8 +1,9 @@
-[![Build Status](https://travis-ci.org/h-omer/neo4j-core-versioner.svg?branch=master)](https://travis-ci.org/h-omer/neo4j-core-versioner)
+[![Build Status](https://travis-ci.org/h-omer/neo4j-versioner-core.svg?branch=master)](https://travis-ci.org/h-omer/neo4j-versioner-core)
+[![Dependency Status](https://www.versioneye.com/user/projects/593a42a03601b10036e095b7/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/593a42a03601b10036e095b7)
 
-# Neo4j Core Versioner
+# Neo4j Versioner Core
 
-Neo4j Core Versioner is a collection of procedures, aimed to help developers to manage the Entity-State model, by creating, updating and querying the graph.
+Neo4j Versioner Core is a collection of procedures, aimed to help developers to manage the Entity-State model, by creating, updating and querying the graph.
 
 ## License
 
@@ -10,17 +11,17 @@ Apache License 2.0
 
 ## Installation
 
-1. Download the latest [release](https://github.com/h-omer/neo4j-core-versioner/releases);
+1. Download the latest [release](https://github.com/h-omer/neo4j-versioner-core/releases);
 2. Put the downloaded jar file into `$NEO4J_HOME/plugins` folder;
 3. Start/Restart Neo4j.
 
 ## About
 
-Neo4j Core Versioner has been developed by [Alberto D'Este](https://github.com/albertodeste) and [Marco Falcier](https://github.com/mfalcier).
+Neo4j Versioner Core has been developed by [Alberto D'Este](https://github.com/albertodeste) and [Marco Falcier](https://github.com/mfalcier).
 
 It's based on the following data model: 
 
-![Data Model](https://raw.githubusercontent.com/h-omer/neo4j-core-versioner/master/docs/images/data-model.png)
+![Data Model](https://raw.githubusercontent.com/h-omer/neo4j-versioner-core/master/docs/images/data-model.png)
 
 ## Examples
 
@@ -36,7 +37,7 @@ And how to retrieve the current `State`:
 MATCH (d:Device) WITH d CALL graph.versioner.get.current.state(d) YIELD node RETURN node
 ```
 
-If you want to use Neo4j Core Versioner procedures on your procedures/functions you simply create a new instance:
+If you want to use Neo4j Versioner Core procedures on your procedures/functions you simply create a new instance:
 
 ```java
 Optional<Init> result = new InitBuilder().withDb(db).withLog(log).build();
@@ -45,8 +46,8 @@ result.ifPresent(a -> a.init("EntityLabel", entityProps, stateProps, additionalL
 
 ## Full documentation
 
-You can find the full documentation [here](https://h-omer.github.io/neo4j-core-versioner/).
+You can find the full documentation [here](https://h-omer.github.io/neo4j-versioner-core/).
 
 ## Feedback
 
-We would appreciate your feedback about our Core Versioner, how to improve and fix (we hope not so many! :see_no_evil:) any bad things. Say yours in the [issue](https://github.com/h-omer/neo4j-core-versioner/issues) section.
+We would appreciate your feedback about our Core Versioner, how to improve and fix (we hope not so many! :see_no_evil:) any bad things. Say yours in the [issue](https://github.com/h-omer/neo4j-versioner-core/issues) section.
