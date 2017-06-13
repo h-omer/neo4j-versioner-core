@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/h-omer/neo4j-versioner-core.svg?branch=master)](https://travis-ci.org/h-omer/neo4j-versioner-core)
 [![Dependency Status](https://www.versioneye.com/user/projects/593a42a03601b10036e095b7/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/593a42a03601b10036e095b7)
+[![GitHub version](https://badge.fury.io/gh/h-omer%2Fneo4j-versioner-core.svg)](https://badge.fury.io/gh/h-omer%2Fneo4j-versioner-core)
 
 # Neo4j Versioner Core
 
