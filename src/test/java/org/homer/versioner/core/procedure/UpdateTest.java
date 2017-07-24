@@ -257,4 +257,25 @@ public class UpdateTest {
             assertThat(correctResult.single().get("stateId").asLong(), equalTo(1L));
         }
     }
+
+    @Test
+    public void shouldCreateACopyOfTheCurrentStateIfPatchedWithoutStateProps() throws Throwable {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
+            // Given
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            StatementResult stateResult = session.run("MATCH (s:State) RETURN s");
+            Node state = stateResult.single().get("s").asNode();
+
+            // When
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.patch(e) YIELD node RETURN node");
+
+            // Then
+            Node newState = result.single().get("node").asNode();
+            assertThat(state.get("key"), equalTo(newState.get("key")));
+            assertThat(state.size(), equalTo(newState.size()));
+        }
+    }
 }

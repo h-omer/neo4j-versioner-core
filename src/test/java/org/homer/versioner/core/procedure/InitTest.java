@@ -24,39 +24,41 @@ public class InitTest {
     /*------------------------------*/
     /*             init             */
     /*------------------------------*/
-
     @Test
-    public void shouldCreateAnEmptyEntityWithoutAState() throws Throwable {
+    public void shouldCreateAnEntityAndAStateNodeWithoutPropsIfEmptyMapIsPassed() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // When
             StatementResult result = session.run("CALL graph.versioner.init('Entity')");
-            session.run("MATCH (e:Entity) RETURN e").single().get("e").asNode();
-            StatementResult entityEmptyResult = session.run("MATCH (e:Entity) RETURN properties(e) as props");
-            StatementResult stateEmptyResult = session.run("MATCH (s:State) RETURN s");
+            StatementResult stateResult = session.run("MATCH (s:State) RETURN s");
+            StatementResult currentResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(e) as id");
+            Node state = stateResult.single().get("s").asNode();
 
             // Then
             assertThat(result.single().get("node").asNode().id(), equalTo(0L));
-            assertThat(entityEmptyResult.single().get("props").asMap().isEmpty(), equalTo(true));
-            assertThat(stateEmptyResult.hasNext(), equalTo(false));
+            assertThat(state.id(), equalTo(1L));
+            assertThat(currentResult.single().get("id").asLong(), equalTo(0L));
         }
     }
 
     @Test
-    public void shouldCreateAnEntityWithPropertiesWithoutAState() throws Throwable {
+    public void shouldCreateAnEntityWithPropertiesWithAState() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // When
             StatementResult result = session.run("CALL graph.versioner.init('Entity', {key:'value'})");
             StatementResult entityResult = session.run("MATCH (e:Entity) RETURN properties(e) as props");
-            StatementResult stateEmptyResult = session.run("MATCH (s:State) RETURN s");
+            StatementResult stateResult = session.run("MATCH (s:State) RETURN s");
+            StatementResult currentResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(e) as id");
+            Node state = stateResult.single().get("s").asNode();
 
             // Then
             assertThat(result.single().get("node").asNode().id(), equalTo(0L));
             assertThat(entityResult.single().get("props").asMap().isEmpty(), equalTo(false));
-            assertThat(stateEmptyResult.hasNext(), equalTo(false));
+            assertThat(state.id(), equalTo(1L));
+            assertThat(currentResult.single().get("id").asLong(), equalTo(0L));
         }
     }
 

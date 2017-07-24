@@ -35,18 +35,16 @@ public class Init extends CoreProcedure {
 
         Node entity = Utility.setProperties(db.createNode(Utility.labels(labelNames)), entityProps);
 
-        if (!stateProps.isEmpty()) {
-            labelNames = new ArrayList<>(singletonList(Utility.STATE_LABEL));
-            if (!additionalLabel.isEmpty()) {
-                labelNames.add(additionalLabel);
-            }
-            Node state = Utility.setProperties(db.createNode(Utility.labels(labelNames)), stateProps);
-
-            long instantDate = (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
-
-            // Connecting the new current state to the Entity
-            Utility.addCurrentState(state, entity, instantDate);
+        labelNames = new ArrayList<>(singletonList(Utility.STATE_LABEL));
+        if (!additionalLabel.isEmpty()) {
+            labelNames.add(additionalLabel);
         }
+        Node state = Utility.setProperties(db.createNode(Utility.labels(labelNames)), stateProps);
+
+        long instantDate = (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
+
+        // Connecting the new current state to the Entity
+            Utility.addCurrentState(state, entity, instantDate);
 
         log.info(Utility.LOGGER_TAG + "Created a new Entity with label {} and id {}", entityLabel, entity.getId());
 

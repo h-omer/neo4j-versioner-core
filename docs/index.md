@@ -93,8 +93,8 @@ Legend
 name | parameters | return values | description
 ---- | ---------- | ------------- | -----------
 [graph.versioner.init](#init) | entityLabel, *{key:value,...}*, *{key:value,...}*, *additionalLabel*, *date* | **node** | Create an Entity node with an optional initial State.
-[graph.versioner.update](#update) | **entity**, {key:value,...}, *additionalLabel*, *date* | **node** | Add a new State to the given Entity.
-[graph.versioner.patch](#patch) | **entity**, {key:value,...}, *additionalLabel*, *date* | **node** | Add a new State to the given Entity, starting from the previous one. It will update all the properties, not labels.
+[graph.versioner.update](#update) | **entity**, *{key:value,...}*, *additionalLabel*, *date* | **node** | Add a new State to the given Entity.
+[graph.versioner.patch](#patch) | **entity**, *{key:value,...}*, *additionalLabel*, *date* | **node** | Add a new State to the given Entity, starting from the previous one. It will update all the properties, not labels.
 [graph.versioner.get.current.path](#get-current-path) | **entity** | **path** | Get a the current path (Entity, State and rels) for the given Entity.
 [graph.versioner.get.current.state](#get-current-state) | **entity** | **node** | Get the current State node for the given Entity.
 [graph.versioner.get.all](#get-all) | **entity** | **path** | Get an Entity State path for the given Entity.
@@ -108,8 +108,8 @@ name | parameters | return values | description
 
 ## init
 
-This procedure is used in order to initialize an Entity node, with an optional initial State. 
-If a Map of `State` properties is given, it will also create a `State` node, with both `HAS_STATE` and `CURRENT` relationships. 
+This procedure is used in order to initialize an Entity node, with an initial State. 
+If a Map of `State` properties is given, a `State` node will be created, with both `HAS_STATE` and `CURRENT` relationships; otherwise, a `State` node without properties will be created. 
 If date is given, `date` and `startDate` will be initialized with that value.
 
 ### Details
@@ -143,7 +143,8 @@ CALL graph.versioner.init('Person', {ssn: 123456789, name: 'Marco'}, {address: '
 ## update
 
 This procedure is used in order to update a status of an existing Entity node. It will create a new `State` node, deleting the previous `CURRENT` relationship, creating a new one to the new created node with the current date (or the optional one, if given); then it update the last `HAS_STATE` relationship adding the current/given date as the `endDate` and creating a new `HAS_STATE` relationship with `startDate` as the current/given date. It will also create a new relationship between the new and the last `State` called `PREVIOUS`, with the old date as a property.
-If the Entity node has no `State`, it will create a new `State` node, with both `HAS_STATE` and `CURRENT` relationships. 
+If the Entity node has no `State`, it will create a new `State` node, with both `HAS_STATE` and `CURRENT` relationships.
+If no properties are passed, a new `State` node will be created, without properties.
 
 ### Details
 
@@ -175,8 +176,9 @@ MATCH (d:Device) WITH d CALL graph.versioner.update(d, {context:'some details'},
 
 ## patch
 
-This procedure is used in order to patch the current status of an existing Entity node, updating/creating the given properties, mantaining the oldest and untouched one. It will create a new `State` node, deleting the previous `CURRENT` relationship, creating a new one to the new created node with the current date (or the optional one, if given); then it update the last `HAS_STATE` relationship adding the current/given date as the `endDate` and creating a new `HAS_STATE` relationship with `startDate` as the current/given date. It will also create a new relationship between the new and the last `State` called `PREVIOUS`, with the old date as a property.
+This procedure is used in order to patch the current status of an existing Entity node, updating/creating the given properties, maintaining the oldest and untouched one. It will create a new `State` node, deleting the previous `CURRENT` relationship, creating a new one to the new created node with the current date (or the optional one, if given); then it update the last `HAS_STATE` relationship adding the current/given date as the `endDate` and creating a new `HAS_STATE` relationship with `startDate` as the current/given date. It will also create a new relationship between the new and the last `State` called `PREVIOUS`, with the old date as a property.
 If the Entity node has no `State`, it will create a new `State` node, with both `HAS_STATE` and `CURRENT` relationships. 
+If no properties are passed, a copy of the `CURRENT` node will be created as the new `State`.
 
 ### Details
 

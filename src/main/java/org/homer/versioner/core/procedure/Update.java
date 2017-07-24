@@ -25,7 +25,7 @@ public class Update extends CoreProcedure {
     @Description("graph.versioner.update(entity, {key:value,...}, additionalLabel, date) - Add a new State to the given Entity.")
     public Stream<NodeOutput> update(
             @Name("entity") Node entity,
-            @Name("stateProps") Map<String, Object> stateProps,
+            @Name(value = "stateProps", defaultValue = "{}") Map<String, Object> stateProps,
             @Name(value = "additionalLabel", defaultValue = "") String additionalLabel,
             @Name(value = "date", defaultValue = "0") long date) {
 
@@ -67,7 +67,7 @@ public class Update extends CoreProcedure {
     @Description("graph.versioner.patch(entity, {key:value,...}, additionalLabel, date) - Add a new State to the given Entity, starting from the previous one. It will update all the properties, not labels.")
     public Stream<NodeOutput> patch(
             @Name("entity") Node entity,
-            @Name("stateProps") Map<String, Object> stateProps,
+            @Name(value = "stateProps", defaultValue = "{}") Map<String, Object> stateProps,
             @Name(value = "additionalLabel", defaultValue = "") String additionalLabel,
             @Name(value = "date", defaultValue = "0") long date) {
 
