@@ -62,7 +62,7 @@ Add the following repository and dependency to your `pom.xml` file
 <dependency>
     <groupId>com.github.h-omer</groupId>
     <artifactId>neo4j-versioner-core</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -76,7 +76,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compile 'com.github.h-omer:neo4j-versioner-core:1.1.0'
+    compile 'com.github.h-omer:neo4j-versioner-core:1.2.0'
 }
 ```
 
