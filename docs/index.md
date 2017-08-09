@@ -137,7 +137,7 @@ node | Node
 ### Example call
 
 ```cypher
-CALL graph.versioner.init('Person', {ssn: 123456789, name: 'Marco'}, {address: 'Via Roma 11'})
+CALL graph.versioner.init('Person', {ssn: 123456789, name: 'Marco'}, {address: 'Via Roma 11'}) YIELD node RETURN node
 ```
 
 ## update

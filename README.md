@@ -51,4 +51,4 @@ You can find the full documentation [here](https://h-omer.github.io/neo4j-versio
 
 ## Feedback
 
-We would appreciate your feedback about our Core Versioner, how to improve and fix (we hope not so many! :see_no_evil:) any bad things. Say yours in the [issue](https://github.com/h-omer/neo4j-versioner-core/issues) section.
+We would appreciate your feedback about our Versioner Core, how to improve and fix (we hope not so many! :see_no_evil:) any bad things. Say yours in the [issue](https://github.com/h-omer/neo4j-versioner-core/issues) section.
