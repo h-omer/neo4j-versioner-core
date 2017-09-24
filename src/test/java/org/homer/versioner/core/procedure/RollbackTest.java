@@ -194,4 +194,40 @@ public class RollbackTest {
             }
         }
     }
+
+    /*-------------------------------*/
+	/*         rollback.nth          */
+	/*-------------------------------*/
+
+    @Test
+    public void shouldRollbackNthWorkCorrectly() {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
+            // Given
+            session.run("CREATE (:Entity {key:'immutableValue'})-[:CURRENT {date:0}]->(:State:Error {key:'initialValue'})"
+                    + "-[:PREVIOUS]->(:State {key:'value'})-[:PREVIOUS]->(:State:Test {key:'testValue'})");
+
+            // When
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.rollback.nth(e, 2) YIELD node RETURN node");
+
+            // Then
+            boolean failure = true;
+
+            while (result.hasNext()) {
+                failure = false;
+                assertThat(result.next().get("node").asNode().hasLabel("Test"), equalTo(true));
+            }
+
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN s");
+
+            while(!failure && result.hasNext()) {
+                assertThat(result.next().get("node").asNode().hasLabel("Test"), equalTo(true));
+            }
+
+            if (failure) {
+                fail();
+            }
+        }
+    }
 }

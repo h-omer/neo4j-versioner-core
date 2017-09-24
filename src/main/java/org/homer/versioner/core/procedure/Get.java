@@ -10,6 +10,7 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.util.Optional;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -82,4 +83,27 @@ public class Get {
 				.map(Relationship::getEndNode)
 				.map(NodeOutput::new);
     }
+
+	@Procedure(value = "graph.versioner.get.nth.state", mode = DEFAULT)
+	@Description("graph.versioner.get.nth.state(entity, nth) - Get the nth State node for the given Entity.")
+	public Stream<NodeOutput> getNthState(
+			@Name("entity") Node entity,
+			@Name("nth") long nth) {
+
+		Optional<Node> currentState = getCurrentState(entity).findFirst().map(c -> c.node);
+		return Stream
+				.iterate(currentState, s -> s.flatMap(this::jumpToPreviousState))
+				.limit(nth + 1)
+				.map(NodeOutput::new)
+				.reduce((a, b) -> b) //get only the last value (apply jumpToPreviousState n times
+				.map(Stream::of)
+				.orElse(Stream.empty());
+	}
+
+	private Optional<Node> jumpToPreviousState(Node currentState) {
+
+    	return StreamSupport.stream(currentState.getRelationships(RelationshipType.withName(Utility.PREVIOUS_TYPE), Direction.OUTGOING).spliterator(), false)
+				.findFirst()
+				.map(Relationship::getEndNode);
+	}
 }

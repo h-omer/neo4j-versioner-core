@@ -1,5 +1,6 @@
 package org.homer.versioner.core.procedure;
 
+import org.homer.versioner.core.builders.GetBuilder;
 import org.homer.versioner.core.core.CoreProcedure;
 import org.homer.versioner.core.Utility;
 import org.homer.versioner.core.output.NodeOutput;
@@ -129,6 +130,21 @@ public class Rollback extends CoreProcedure {
                 // No ROLLBACK relationship found
                 .orElse(StreamSupport.stream(state.getRelationships(RelationshipType.withName(Utility.PREVIOUS_TYPE), Direction.OUTGOING).spliterator(), false)
                         .findFirst().map(Relationship::getEndNode));
+    }
+
+    @Procedure(value = "graph.versioner.rollback.nth", mode = WRITE)
+    @Description("graph.versioner.rollback.nth(entity, nth-state, date) - Rollback the given Entity to the nth previous State")
+    public Stream<NodeOutput> rollbackNth(
+            @Name("entity") Node entity,
+            @Name("state") long nthState,
+            @Name(value = "date", defaultValue = "0") long date) {
+
+        long instantDate = (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
+
+        return new GetBuilder().build()
+                .flatMap(get -> get.getNthState(entity, nthState).findFirst())
+                .map(state -> rollbackTo(entity, state.node, instantDate))
+                .orElse(Stream.empty());
     }
 }
 
