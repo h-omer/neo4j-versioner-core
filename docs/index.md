@@ -62,7 +62,7 @@ Add the following repository and dependency to your `pom.xml` file
 <dependency>
     <groupId>com.github.h-omer</groupId>
     <artifactId>neo4j-versioner-core</artifactId>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -76,7 +76,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compile 'com.github.h-omer:neo4j-versioner-core:1.2.0'
+    compile 'com.github.h-omer:neo4j-versioner-core:1.3.0'
 }
 ```
 
@@ -95,13 +95,16 @@ name | parameters | return values | description
 [graph.versioner.init](#init) | entityLabel, *{key:value,...}*, *{key:value,...}*, *additionalLabel*, *date* | **node** | Create an Entity node with an optional initial State.
 [graph.versioner.update](#update) | **entity**, *{key:value,...}*, *additionalLabel*, *date* | **node** | Add a new State to the given Entity.
 [graph.versioner.patch](#patch) | **entity**, *{key:value,...}*, *additionalLabel*, *date* | **node** | Add a new State to the given Entity, starting from the previous one. It will update all the properties, not labels.
+[graph.versioner.patch.from](#patch-from) | **entity**, **state**, *date* | **node** | Add a new State to the given Entity, starting from the given one. It will update all the properties, not labels.
 [graph.versioner.get.current.path](#get-current-path) | **entity** | **path** | Get a the current path (Entity, State and rels) for the given Entity.
 [graph.versioner.get.current.state](#get-current-state) | **entity** | **node** | Get the current State node for the given Entity.
 [graph.versioner.get.all](#get-all) | **entity** | **path** | Get an Entity State path for the given Entity.
 [graph.versioner.get.by.label](#get-by-label) | **entity**, label | **node** | Get State nodes with the given label, by the given Entity node.
 [graph.versioner.get.by.date](#get-by-date) | **entity**, date | **node** | Get State node by the given Entity node, created at the given date.
+[graph.versioner.get.nth.state](#get-nth-state) | **entity**, nth | **node** | Get the nth State node for the given Entity.
 [graph.versioner.rollback](#rollback) | **entity**, *date* | **node** | Rollback the current State to the first available one.
 [graph.versioner.rollback.to](#rollback-to) | **entity**, **state**, *date* | **node** | Rollback the current State to the given one.
+[graph.versioner.rollback.nth](#rollback-nth) | **entity**, nth, *date* | **node** | Rollback the given Entity to the nth previous State.
 [graph.versioner.diff](#diff) | **stateFrom**, **stateTo** | diff | Get a list of differences that must be applied to stateFrom in order to convert it into stateTo.
 [graph.versioner.diff.from.previous](#diff-from-previous) | **state** | diff | Get a list of differences that must be applied to the previous statusof the given one in order to become the given state.
 [graph.versioner.diff.from.current](#diff-from-current) | **state** | diff | Get a list of differences that must be applied to the given state in order to become the current entity state.
@@ -205,6 +208,36 @@ node | Node
 
 ```cypher
 MATCH (d:Device) WITH d CALL graph.versioner.patch(d, {warnings: 'some warnings'}, 'Warning', 593920000000) YIELD node RETURN node
+```
+
+## patch from
+
+This procedure is used in order to patch the current `State` of an existing Entity node, updating/creating the properties using the those one the given `State, maintaining the oldest and untouched one. It will create a new `State` node, deleting the previous `CURRENT` relationship, creating a new one to the new created node with the current date (or the optional one, if given); then it update the last `HAS_STATE` relationship adding the current/given date as the `endDate` and creating a new `HAS_STATE` relationship with `startDate` as the current/given date. It will also create a new relationship between the new and the last `State` called `PREVIOUS`, with the old date as a property.
+If the given `State` is not related with the given Entity, an error will occur.
+### Details
+
+#### Name`
+
+`graph.versioner.patch.from`
+
+#### Parameters
+
+name | necessity | detail 
+---- | --------- | ------
+`entity` | mandatory | The entity node to operate with.
+`state` | mandatory | The `State` used to patch the current state from.
+`date` | optional | The time-in-millis value of a given date, used instead of the current one.
+
+#### Return value
+
+name | type 
+---- | ----
+node | Node 
+
+### Example call
+
+```cypher
+MATCH (d:Device)-[:HAS_STATE->(s:State {code:2}) WITH d,s CALL graph.versioner.patch.from(d, s, 593920000000) YIELD node RETURN node
 ```
 
 ## get current path
@@ -346,7 +379,7 @@ This procedure is used to retrieve a specific Entity `State` node, that has been
 name | necessity | detail 
 ---- | --------- | ------
 `entity` | mandatory | The entity node to operate with.
-`date` | mandatory | TThe time-in-millis value of a given date.
+`date` | mandatory | The time-in-millis value of a given date.
 
 #### Return value
 
@@ -358,6 +391,36 @@ node | node
 
 ```cypher
 MATCH (d:Device) WITH d CALL graph.versioner.get.by.date(d, 593920000000) YIELD node RETURN node
+```
+
+## get nth state
+
+This procedure is used to retrieve the nth Entity `State` node.
+
+
+### Details
+
+#### Name
+
+`graph.versioner.get.nth.state`
+
+#### Parameters
+
+name | necessity | detail 
+---- | --------- | ------
+`entity` | mandatory | The entity node to operate with.
+`nth` | mandatory | A number representing the nth `State` that must be returned.
+
+#### Return value
+
+name | type 
+---- | ----
+node | node
+
+### Example call
+
+```cypher
+MATCH (d:Device) WITH d CALL graph.versioner.get.nth.state(d, 3) YIELD node RETURN node
 ```
 
 ## rollback
@@ -423,6 +486,39 @@ node | node
 
 ```cypher
 MATCH (d:Device)-[:HAS_STATE]->(s:State {code:2}) WITH d, s CALL graph.versioner.rollback.to(d, s, 593920000000) YIELD node RETURN node
+```
+
+## rollback nth
+
+This procedure is used to rollback the current Entity `State` node, to the nth one. 
+If the nth value is 0, `null` will be returned. 
+If `date` is given, that value will be used instead of the current one.
+
+
+### Details
+
+#### Name
+
+`graph.versioner.rollback.nth`
+
+#### Parameters
+
+name | necessity | detail 
+---- | --------- | ------
+`entity` | mandatory | The entity node to operate with.
+`nth` | mandatory | A number representing the nth `State` to rollback to.
+`date` | optional | The time-in-millis value of a given date, used instead of the current one.
+
+#### Return value
+
+name | type 
+---- | ----
+node | node
+
+### Example call
+
+```cypher
+MATCH (d:Device) WITH d CALL graph.versioner.rollback.nth(d, 3, 593920000000) YIELD node RETURN node
 ```
 
 ## diff
