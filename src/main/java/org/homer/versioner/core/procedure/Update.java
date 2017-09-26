@@ -1,6 +1,7 @@
 package org.homer.versioner.core.procedure;
 
 import org.homer.versioner.core.core.CoreProcedure;
+import org.homer.versioner.core.exception.VersionerCoreException;
 import org.homer.versioner.core.output.NodeOutput;
 import org.homer.versioner.core.Utility;
 import org.neo4j.graphdb.Direction;
@@ -105,6 +106,39 @@ public class Update extends CoreProcedure {
 
         log.info(Utility.LOGGER_TAG + "Patched Entity with id {}, adding a State with id {}", entity.getId(), newState.getId());
 
+        return Stream.of(new NodeOutput(newState));
+    }
+
+    @Procedure(value = "graph.versioner.patch.from", mode = Mode.WRITE)
+    @Description("graph.versioner.patch.from(entity, state, date) - Add a new State to the given Entity, starting from the given one. It will update all the properties, not labels.")
+    public Stream<NodeOutput> patchFrom(
+            @Name("entity") Node entity,
+            @Name("state") Node state,
+            @Name(value = "date", defaultValue = "0") long date) {
+
+        long instantDate = (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
+
+        Utility.checkRelationship(entity, state);
+
+        // Getting the CURRENT rel if it exist
+        Spliterator<Relationship> currentRelIterator = entity.getRelationships(RelationshipType.withName(Utility.CURRENT_TYPE), Direction.OUTGOING).spliterator();
+        Node newState = StreamSupport.stream(currentRelIterator, false).map(currentRel -> {
+            Node currentState = currentRel.getEndNode();
+            Long currentDate = (Long) currentRel.getProperty("date");
+            // Creating the new node
+            Map<String, Object> patchedProps = currentState.getAllProperties();
+            patchedProps.putAll(state.getAllProperties());
+            Node result = Utility.setProperties(db.createNode(Utility.labels(state.getLabels())), patchedProps);
+
+            // Updating CURRENT state
+            result = Utility.currentStateUpdate(entity, instantDate, currentRel, currentState, currentDate, result);
+
+            return result;
+        }).findFirst().orElseGet(() -> {
+            throw new VersionerCoreException("Can't find any current State node for the given entity.");
+        });
+
+        log.info(Utility.LOGGER_TAG + "Patched Entity with id {}, adding a State with id {}", entity.getId(), newState.getId());
         return Stream.of(new NodeOutput(newState));
     }
 }

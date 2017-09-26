@@ -1,5 +1,6 @@
 package org.homer.versioner.core;
 
+import org.homer.versioner.core.exception.VersionerCoreException;
 import org.neo4j.graphdb.*;
 
 import java.util.*;
@@ -52,6 +53,13 @@ public class Utility {
             result = labelNames.stream().filter(Objects::nonNull).map(Label::label).toArray(Label[]::new);
         }
         return result;
+    }
+
+    public static Label[] labels(Iterable<Label> labelsIterable) {
+        List<String> labelNames = new ArrayList<>();
+        Spliterator<Label> labelsIterator = labelsIterable.spliterator();
+        StreamSupport.stream(labelsIterator, false).forEach(label -> labelNames.add(label.name()));
+        return labels(labelNames);
     }
 
     /**
@@ -117,5 +125,28 @@ public class Utility {
     public static void addCurrentState(Node state, Node entity, long instantDate) {
         entity.createRelationshipTo(state, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, instantDate);
         entity.createRelationshipTo(state, RelationshipType.withName(HAS_STATE_TYPE)).setProperty(START_DATE_PROP, instantDate);
+    }
+
+    /**
+     * Checks if the given entity is related through the HAS_STATE relationship with the given node
+     *
+     * @param entity    a {@link Node} representing the Entity
+     * @param state     a {@link Node} representing the State
+     * @return {@link Boolean} result
+     */
+    public static Boolean checkRelationship(Node entity, Node state) {
+        Spliterator<Relationship> stateRelIterator = state.getRelationships(RelationshipType.withName(Utility.HAS_STATE_TYPE), Direction.INCOMING).spliterator();
+
+        Boolean check = StreamSupport.stream(stateRelIterator, false).map(hasStateRel -> {
+            Node maybeEntity = hasStateRel.getStartNode();
+            if (maybeEntity.getId() != entity.getId()) {
+                throw new VersionerCoreException("Can't patch the given entity, because the given State is owned by another entity.");
+            }
+            return true;
+        }).findFirst().orElseGet(() -> {
+            throw new VersionerCoreException("Can't find any entity node relate to the given State.");
+        });
+
+        return check;
     }
 }
