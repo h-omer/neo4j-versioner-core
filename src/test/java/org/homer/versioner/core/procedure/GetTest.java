@@ -262,4 +262,30 @@ public class GetTest {
             }
         }
     }
+
+    @Test
+    public void shouldGetNthZeroStateNodeOfGivenEntity() {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
+            // Given
+            session.run("CREATE (:Entity {key:'immutableValue'})-[:CURRENT]->(:State:Error {key:'initialValue'})"
+                    + "-[:PREVIOUS]->(:State {key:'value'})-[:PREVIOUS]->(:State:Test {key:'testValue'})");
+
+            // When
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.get.nth.state(e, 0) YIELD node RETURN node");
+
+            // Then
+            boolean failure = true;
+
+            while (result.hasNext()) {
+                failure = false;
+                assertThat(result.next().get("node").asNode().hasLabel("Error"), equalTo(true));
+            }
+
+            if (failure) {
+                fail();
+            }
+        }
+    }
 }
