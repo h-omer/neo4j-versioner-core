@@ -79,6 +79,8 @@ public class Rollback extends CoreProcedure {
         long instantDate = (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
         Optional<Node> newState = Optional.empty();
 
+        Utility.checkRelationship(entity, state);
+
         // If the given State is the CURRENT one, null must be returned
         Spliterator<Relationship> currentRelIterator = state.getRelationships(RelationshipType.withName(Utility.CURRENT_TYPE), Direction.INCOMING).spliterator();
         Optional<Relationship> currentRelationshipOptional = StreamSupport.stream(currentRelIterator, false).filter(Objects::nonNull).findFirst();

@@ -213,7 +213,7 @@ MATCH (d:Device) WITH d CALL graph.versioner.patch(d, {warnings: 'some warnings'
 ## patch from
 
 This procedure is used in order to patch the current `State` of an existing Entity node, updating/creating the properties using the those one the given `State, maintaining the oldest and untouched one. It will create a new `State` node, deleting the previous `CURRENT` relationship, creating a new one to the new created node with the current date (or the optional one, if given); then it update the last `HAS_STATE` relationship adding the current/given date as the `endDate` and creating a new `HAS_STATE` relationship with `startDate` as the current/given date. It will also create a new relationship between the new and the last `State` called `PREVIOUS`, with the old date as a property.
-If the given `State` is not related with the given Entity, an error will occur.
+If the given `State` is not related with the given Entity, an error will occur.`
 ### Details
 
 #### Name`
@@ -460,7 +460,7 @@ MATCH (d:Device) WITH d CALL graph.versioner.rollback(d, 593920000000) YIELD nod
 This procedure is used to rollback the current Entity `State` node, to the given one. 
 If the given `State` is the current one, or if it already has a `CURRENT` relationship, `null` will be returned. 
 If `date` is given, that value will be used instead of the current one.
-
+If the given `State` is not related with the given Entity, an error will occur.`
 
 ### Details
 
