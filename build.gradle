@@ -17,10 +17,10 @@ repositories {
 }
 
 dependencies {
-    testCompile group: 'org.neo4j.test', name: 'neo4j-harness', version:'3.2.6'
+    testCompile group: 'org.neo4j.test', name: 'neo4j-harness', version:'3.3.0'
     testCompile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version:'1.4.4'
     testCompile group: 'junit', name: 'junit', version:'4.12'
     testCompile group: 'org.hamcrest', name: 'hamcrest-junit', version:'2.0.0.0'
     testCompile group: 'org.mockito', name: 'mockito-core', version:'2.11.0'
-    compile group: 'org.neo4j', name: 'neo4j', version:'3.2.6'
+    compile group: 'org.neo4j', name: 'neo4j', version:'3.3.0'
 }
