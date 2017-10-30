@@ -114,8 +114,8 @@ public class UpdateTest {
             StatementResult correctResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(s) as stateId");
 
             // Then
-            assertThat(result.single().get("node").asNode().id(), equalTo(1L));
-            assertThat(correctResult.single().get("stateId").asLong(), equalTo(1L));
+            assertThat(result.single().get("node").asNode().id(), equalTo(20L));
+            assertThat(correctResult.single().get("stateId").asLong(), equalTo(20L));
         }
     }
 
@@ -254,8 +254,8 @@ public class UpdateTest {
             StatementResult correctResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(s) as stateId");
 
             // Then
-            assertThat(result.single().get("node").asNode().id(), equalTo(1L));
-            assertThat(correctResult.single().get("stateId").asLong(), equalTo(1L));
+            assertThat(result.single().get("node").asNode().id(), equalTo(20L));
+            assertThat(correctResult.single().get("stateId").asLong(), equalTo(20L));
         }
     }
 
