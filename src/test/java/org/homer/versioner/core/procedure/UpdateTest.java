@@ -40,7 +40,7 @@ public class UpdateTest {
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
 
             // Then
-            assertThat(result.single().get("node").asNode().id(), equalTo(2L));
+            assertThat(result.single().get("node").asNode().id(), equalTo(20L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2L));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
@@ -64,7 +64,7 @@ public class UpdateTest {
             StatementResult currentStateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s) return s");
 
             // Then
-            assertThat(result.single().get("node").asNode().id(), equalTo(2L));
+            assertThat(result.single().get("node").asNode().id(), equalTo(20L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2L));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
@@ -91,7 +91,7 @@ public class UpdateTest {
             StatementResult hasStatusDateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State)-[:PREVIOUS]->(s2:State)<-[rel:HAS_STATE]-(e) RETURN rel.endDate as endDate");
 
             // Then
-            assertThat(result.single().get("node").asNode().id(), equalTo(2L));
+            assertThat(result.single().get("node").asNode().id(), equalTo(20L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2L));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
@@ -114,8 +114,8 @@ public class UpdateTest {
             StatementResult correctResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(s) as stateId");
 
             // Then
-            assertThat(result.single().get("node").asNode().id(), equalTo(20L));
-            assertThat(correctResult.single().get("stateId").asLong(), equalTo(20L));
+            assertThat(result.single().get("node").asNode().id(), equalTo(1L));
+            assertThat(correctResult.single().get("stateId").asLong(), equalTo(1L));
         }
     }
 
@@ -140,7 +140,7 @@ public class UpdateTest {
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
 
             // Then
-            assertThat(currentState.id(), equalTo(2L));
+            assertThat(currentState.id(), equalTo(20L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2L));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
@@ -167,7 +167,7 @@ public class UpdateTest {
             StatementResult currentStateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s) return s");
 
             // Then
-            assertThat(currentState.id(), equalTo(2L));
+            assertThat(currentState.id(), equalTo(20L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2L));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
@@ -197,7 +197,7 @@ public class UpdateTest {
             StatementResult hasStatusDateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State)-[:PREVIOUS]->(s2:State)<-[rel:HAS_STATE]-(e) RETURN rel.endDate as endDate");
 
             // Then
-            assertThat(currentState.id(), equalTo(2L));
+            assertThat(currentState.id(), equalTo(20L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2L));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
@@ -229,7 +229,7 @@ public class UpdateTest {
             StatementResult hasStatusDateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State)-[:PREVIOUS]->(s2:State)<-[rel:HAS_STATE]-(e) RETURN rel.endDate as endDate");
 
             // Then
-            assertThat(currentState.id(), equalTo(2L));
+            assertThat(currentState.id(), equalTo(20L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2L));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
@@ -254,8 +254,8 @@ public class UpdateTest {
             StatementResult correctResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(s) as stateId");
 
             // Then
-            assertThat(result.single().get("node").asNode().id(), equalTo(20L));
-            assertThat(correctResult.single().get("stateId").asLong(), equalTo(20L));
+            assertThat(result.single().get("node").asNode().id(), equalTo(1L));
+            assertThat(correctResult.single().get("stateId").asLong(), equalTo(1L));
         }
     }
 
@@ -304,7 +304,7 @@ public class UpdateTest {
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
 
             // Then
-            assertThat(currentState.id(), equalTo(3L));
+            assertThat(currentState.id(), equalTo(21L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(3L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
             assertThat(currentState.get("key").asString(), equalTo("initialValue"));
@@ -334,7 +334,7 @@ public class UpdateTest {
             StatementResult hasStatusDateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State)-[:PREVIOUS]->(s2:State)<-[rel:HAS_STATE]-(e) RETURN rel.endDate as endDate");
 
             // Then
-            assertThat(currentState.id(), equalTo(3L));
+            assertThat(currentState.id(), equalTo(21L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(3L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
             assertThat(currentState.get("key").asString(), equalTo("initialValue"));
@@ -366,7 +366,7 @@ public class UpdateTest {
             StatementResult hasStatusDateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State)-[:PREVIOUS]->(s2:State)<-[rel:HAS_STATE]-(e) RETURN rel.endDate as endDate");
 
             // Then
-            assertThat(currentState.id(), equalTo(3L));
+            assertThat(currentState.id(), equalTo(21L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(3L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
             assertThat(currentState.get("key").asString(), equalTo("initialValue"));
