@@ -10,7 +10,6 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.util.Optional;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -90,19 +89,24 @@ public class Get {
 			@Name("entity") Node entity,
 			@Name("nth") long nth) {
 
-		Optional<Node> currentState = getCurrentState(entity).findFirst().map(c -> c.node);
-		return Stream
-				.iterate(currentState, s -> s.flatMap(this::jumpToPreviousState))
-				.limit(nth + 1)
-				.map(NodeOutput::new)
-				.reduce((a, b) -> b) //get only the last value (apply jumpToPreviousState n times
-				.map(Stream::of)
+    	return getCurrentState(entity)
+				.findFirst()
+				.flatMap(currentState -> getNthStateFrom(currentState.node, nth))
+				.map(Utility::streamOfNodes)
 				.orElse(Stream.empty());
 	}
 
-	private Optional<Node> jumpToPreviousState(Node currentState) {
+	private Optional<Node> getNthStateFrom(Node state, long nth) {
 
-    	return StreamSupport.stream(currentState.getRelationships(RelationshipType.withName(Utility.PREVIOUS_TYPE), Direction.OUTGOING).spliterator(), false)
+		return Stream.iterate(Optional.of(state), s -> s.flatMap(this::jumpToPreviousState))
+				.limit(nth + 1)
+				.reduce((a, b) -> b) //get only the last value (apply jumpToPreviousState n times
+				.orElse(Optional.empty());
+	}
+
+	private Optional<Node> jumpToPreviousState(Node state) {
+
+    	return StreamSupport.stream(state.getRelationships(RelationshipType.withName(Utility.PREVIOUS_TYPE), Direction.OUTGOING).spliterator(), false)
 				.findFirst()
 				.map(Relationship::getEndNode);
 	}

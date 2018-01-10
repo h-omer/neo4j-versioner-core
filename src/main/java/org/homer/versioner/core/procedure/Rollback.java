@@ -66,7 +66,7 @@ public class Rollback extends CoreProcedure {
             return Optional.empty();
         });
 
-        return Stream.of(new NodeOutput(newState));
+        return newState.map(Utility::streamOfNodes).orElse(Stream.empty());
     }
 
     @Procedure(value = "graph.versioner.rollback.to", mode = WRITE)
@@ -116,7 +116,7 @@ public class Rollback extends CoreProcedure {
             }
         }
 
-        return Stream.of(new NodeOutput(newState));
+        return newState.map(Utility::streamOfNodes).orElse(Stream.empty());
     }
 
     /**

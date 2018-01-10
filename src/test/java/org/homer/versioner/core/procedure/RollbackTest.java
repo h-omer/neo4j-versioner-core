@@ -1,10 +1,10 @@
 package org.homer.versioner.core.procedure;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.driver.v1.*;
 import org.neo4j.driver.v1.exceptions.ClientException;
-import org.neo4j.driver.v1.types.Node;
 import org.neo4j.harness.junit.Neo4jRule;
 
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -97,16 +97,7 @@ public class RollbackTest {
             StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.rollback(e) YIELD node RETURN node");
 
             // Then
-            boolean failure = true;
-
-            while (result.hasNext()) {
-                failure = false;
-                assertThat(result.next().get("node").isNull(), equalTo(true));
-            }
-
-            if (failure) {
-                fail();
-            }
+            Assertions.assertThat(result).isEmpty();
         }
     }
 
@@ -158,16 +149,7 @@ public class RollbackTest {
             StatementResult result = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) WITH e, s CALL graph.versioner.rollback.to(e, s) YIELD node RETURN node");
 
             // Then
-            boolean failure = true;
-
-            while (result.hasNext()) {
-                failure = false;
-                assertThat(result.next().get("node").isNull(), equalTo(true));
-            }
-
-            if (failure) {
-                fail();
-            }
+            Assertions.assertThat(result).isEmpty();
         }
     }
 
@@ -184,16 +166,7 @@ public class RollbackTest {
             StatementResult result = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) WITH e, s CALL graph.versioner.rollback.to(e, s) YIELD node RETURN node");
 
             // Then
-            boolean failure = true;
-
-            while (result.hasNext()) {
-                failure = false;
-                assertThat(result.next().get("node").isNull(), equalTo(true));
-            }
-
-            if (failure) {
-                fail();
-            }
+            Assertions.assertThat(result).isEmpty();
         }
     }
 
@@ -269,22 +242,13 @@ public class RollbackTest {
             StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.rollback.nth(e, 0) YIELD node RETURN node");
 
             // Then
-            boolean failure = true;
+            Assertions.assertThat(result).isEmpty();
 
-            while (result.hasNext()) {
-                failure = false;
-                assertThat(result.next().get("node").isNull(), equalTo(true));
-            }
+            result = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN s");
 
-            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN s");
-
-            while(!failure && result.hasNext()) {
-                assertThat(result.next().get("node").asNode().hasLabel("Error"), equalTo(true));
-            }
-
-            if (failure) {
-                fail();
-            }
+            Assertions.assertThat(result)
+                    .hasSize(1)
+                    .allMatch(node -> node.get("s").asNode().hasLabel("Error"));
         }
     }
 }
