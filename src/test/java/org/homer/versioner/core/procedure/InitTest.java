@@ -1,5 +1,6 @@
 package org.homer.versioner.core.procedure;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.driver.v1.*;
@@ -134,6 +135,21 @@ public class InitTest {
             assertThat(hasStatusResult.single().get("id").asLong(), equalTo(0L));
             assertThat(state.hasLabel("Error"), equalTo(true));
             assertThat(hasStatusDateResult.single().get("date").asLong(), equalTo(593920000000L));
+        }
+    }
+
+    @Test
+    public void shouldCreateAnRNodeConnectedToTheEntity() throws Throwable {
+
+        try (Driver driver = GraphDatabase.driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
+
+            StatementResult result = session.run("CALL graph.versioner.init('Entity')");
+            StatementResult rPath = session.run("MATCH rPath = (:R)-[:FOR]->(:Entity) RETURN rPath");
+
+            Assertions.assertThat(result.single().get("node").asNode().id()).isEqualTo(0L);
+            Assertions.assertThat(rPath)
+                    .hasSize(1)
+                    .allMatch(path -> path.get("rPath").asPath().length() == 1);
         }
     }
 }

@@ -1,9 +1,11 @@
 package org.homer.versioner.core;
 
 import org.homer.versioner.core.exception.VersionerCoreException;
+import org.homer.versioner.core.output.NodeOutput;
 import org.neo4j.graphdb.*;
 
 import java.util.*;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -148,5 +150,14 @@ public class Utility {
         });
 
         return check;
+    }
+
+    /**
+     * Converts the nodes to a stream of {@link NodeOutput}
+     * @param nodes a {@link Node} that will be inserted into the stream and mapped into {@link NodeOutput}
+     * @return {@link Stream} streamOfNodes
+     */
+    public static Stream<NodeOutput> streamOfNodes(Node ... nodes) {
+        return Stream.of(nodes).map(NodeOutput::new);
     }
 }
