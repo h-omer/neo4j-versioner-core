@@ -2,9 +2,11 @@ package org.homer.versioner.core;
 
 import org.homer.versioner.core.exception.VersionerCoreException;
 import org.homer.versioner.core.output.NodeOutput;
+import org.homer.versioner.core.output.RelationshipOutput;
 import org.neo4j.graphdb.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -47,7 +49,7 @@ public class Utility {
      * @param labelNames a {@link List} of label names
      * @return {@link Label[]}
      */
-    public static Label[] labels(List<String> labelNames) {
+    public static Label[] asLabels(List<String> labelNames) {
         Label[] result;
         if (Objects.isNull(labelNames)) {
             result = new Label[0];
@@ -57,11 +59,11 @@ public class Utility {
         return result;
     }
 
-    public static Label[] labels(Iterable<Label> labelsIterable) {
+    public static Label[] asLabels(Iterable<Label> labelsIterable) {
         List<String> labelNames = new ArrayList<>();
         Spliterator<Label> labelsIterator = labelsIterable.spliterator();
         StreamSupport.stream(labelsIterator, false).forEach(label -> labelNames.add(label.name()));
-        return labels(labelNames);
+        return asLabels(labelNames);
     }
 
     /**
@@ -70,12 +72,12 @@ public class Utility {
      * @param labelName a {@link String} representing the unique label
      * @return {@link Label[]}
      */
-    public static Label[] labels(String labelName) {
+    public static Label[] asLabels(String labelName) {
         return new Label[]{Label.label(labelName)};
     }
 
     /**
-     * Creates a new node copying properties and labels form a given one
+     * Creates a new node copying properties and asLabels form a given one
      *
      * @param db   a {@link GraphDatabaseService} representing the database where the node will be created
      * @param node a {@link Node} representing the node to clone
@@ -85,7 +87,7 @@ public class Utility {
         List<String> labelNames = new ArrayList<>();
         Spliterator<Label> labelsIterator = node.getLabels().spliterator();
         StreamSupport.stream(labelsIterator, false).forEach(label -> labelNames.add(label.name()));
-        return setProperties(db.createNode(labels(labelNames)), node.getAllProperties());
+        return setProperties(db.createNode(asLabels(labelNames)), node.getAllProperties());
     }
 
     /**
@@ -132,8 +134,8 @@ public class Utility {
     /**
      * Checks if the given entity is related through the HAS_STATE relationship with the given node
      *
-     * @param entity    a {@link Node} representing the Entity
-     * @param state     a {@link Node} representing the State
+     * @param entity a {@link Node} representing the Entity
+     * @param state  a {@link Node} representing the State
      * @return {@link Boolean} result
      */
     public static Boolean checkRelationship(Node entity, Node state) {
@@ -154,10 +156,64 @@ public class Utility {
 
     /**
      * Converts the nodes to a stream of {@link NodeOutput}
-     * @param nodes a {@link Node} that will be inserted into the stream and mapped into {@link NodeOutput}
+     *
+     * @param nodes a {@link List} of {@link Node} that will be converted to stream and mapped into {@link NodeOutput}
      * @return {@link Stream} streamOfNodes
      */
-    public static Stream<NodeOutput> streamOfNodes(Node ... nodes) {
+    public static Stream<NodeOutput> streamOfNodes(Node... nodes) {
         return Stream.of(nodes).map(NodeOutput::new);
+    }
+
+    /**
+     * Converts the relationships to a stream of {@link RelationshipOutput}
+     *
+     * @param relationships a {@link List} of {@link Relationship} that will be converted to stream and mapped into {@link RelationshipOutput}
+     * @return
+     */
+    public static Stream<RelationshipOutput> streamOfRelationships(Relationship... relationships) {
+        return Stream.of(relationships).map(RelationshipOutput::new);
+    }
+
+    /**
+     * Sets the date to the current millis if it's 0
+     *
+     * @param date a {@link long} representing the milliseconds of the date
+     * @return {@link long} milliseconds of the processed date
+     */
+    public static long defaultToNow(long date) {
+        return (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
+    }
+
+    /**
+     * Checks that the given node is a Versioner Entity, otherwise throws an exception
+     *
+     * @param node the {@link Node} to check
+     * @throws VersionerCoreException
+     */
+    public static void isEntityOrThrowException(Node node) throws VersionerCoreException {
+
+        streamOfIterable(node.getRelationships(RelationshipType.withName("CURRENT"), Direction.OUTGOING)).findAny()
+                .map(ignored -> streamOfIterable(node.getRelationships(RelationshipType.withName("R"), Direction.INCOMING)).findAny())
+                .orElseThrow(() -> new VersionerCoreException("The given node is not a Versioner Core Entity"));
+    }
+
+    public static <T> Stream<T> streamOfIterable(Iterable<T> iterable) {
+        return StreamSupport.stream(iterable.spliterator(), false);
+    }
+
+    public static List<String> getStateLabels(String label) {
+
+        return Stream.of(Utility.STATE_LABEL, label)
+                .filter(l -> Objects.nonNull(l) && !l.isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    public static Optional<Relationship> getCurrentRelationship(Node entity) {
+        return streamOfIterable(entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING))
+                .findFirst();
+    }
+
+    public static Optional<Node> getCurrentNode(Node entity) {
+        return getCurrentRelationship(entity).map(Relationship::getEndNode);
     }
 }

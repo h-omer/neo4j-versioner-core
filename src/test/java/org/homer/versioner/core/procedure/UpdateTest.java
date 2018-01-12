@@ -1,5 +1,6 @@
 package org.homer.versioner.core.procedure;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.driver.v1.*;
@@ -13,7 +14,7 @@ import static org.junit.Assert.assertThat;
 /**
  * UpdateTest class, it contains all the method used to test Update class methods
  */
-public class UpdateTest {
+public class UpdateTest extends GenericProcedureTest {
     @Rule
     public Neo4jRule neo4j = new Neo4jRule()
 
@@ -277,6 +278,29 @@ public class UpdateTest {
             Node newState = result.single().get("node").asNode();
             assertThat(state.get("key"), equalTo(newState.get("key")));
             assertThat(state.size(), equalTo(newState.size()));
+        }
+    }
+
+    @Test
+    public void shouldMaintainTheRelationshipsFromTheCurrentState() throws Throwable {
+
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
+
+            // Given
+            Node entityA = initEntity(session);
+            Node entityB = initEntity(session);
+
+            String createEntityRelationshipQuery = "MATCH (a:Entity)-[:CURRENT]->(s: State), (b:Entity)<-[:FOR]-(r:R) WHERE id(a) = %d AND id(b) = %d CREATE (s)-[:testType]->(r)";
+            session.run(String.format(createEntityRelationshipQuery, entityA.id(), entityB.id()));
+
+            // When
+            String patchQuery = "MATCH (e:Entity) WHERE id(e) = %d WITH e CALL graph.versioner.patch(e) YIELD node RETURN node";
+            StatementResult result = session.run(String.format(patchQuery, entityA.id()));
+
+            // Then
+            Assertions.assertThat(session.run(String.format("MATCH (a:Entity)-[:CURRENT]->(:State)-[:testType]->(:R)-[:FOR]->(b:Entity) WHERE id(a) = %d AND id(b) = %d RETURN a", entityA.id(), entityB.id())))
+                    .hasSize(1);
         }
     }
 
