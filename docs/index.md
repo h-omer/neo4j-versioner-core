@@ -18,13 +18,15 @@ Neo4j Versioner Core has been developed by [Alberto D'Este](https://github.com/a
 
 ## Data Model
 
-The current data model uses two kind of nodes: the Entity nodes, created by the user through a given Label and the `State` nodes, managed by the Graph Versioner.
+The current data model uses three kind of nodes: the Entity nodes, created by the user through a given Label; the `State` nodes, managed by the Graph Versioner and the `R` nodes, used for the versioning of relationships
 The `State` node can be seen as the set of mutable properties which regards the Entity, which possesses only immutable properties.
-There are 4 different relationships:
+The `R` node is a "technical" node, used only to avoid having tons of relationships pointing the entity, it will be pointed to all the states of other entities having relationships with the current `Entity`
+There are 5 different relationships:
 * `(:Entity)-[:CURRENT {date: 123456789}]-(:State)`, representing the current Entity `State`;
 * `(:Entity)-[:HAS_STATE {startDate: 123456788, endDate: 123456789}]-(State)`, representing an Entity `State`, it will have an endDate only if the `State` node is not the current one;
 * `(newerState:State)-[:PREVIOUS {date: 123456788}]->(older:State)`, representing the previous `State` of the indexed one.
 * `(rollbackedState:State)-[:ROLLBACK]->(older:State)`, representing that one `State` has been rolled back to a previous one. 
+* `(:R)-[:FOR]->(:Entity)`, that connects an `Entity` with it's own relationships node.
 
 This is how the data model looks like:
 
@@ -62,7 +64,7 @@ Add the following repository and dependency to your `pom.xml` file
 <dependency>
     <groupId>com.github.h-omer</groupId>
     <artifactId>neo4j-versioner-core</artifactId>
-    <version>1.3.0</version>
+    <version>2.0.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -76,7 +78,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compile 'com.github.h-omer:neo4j-versioner-core:1.3.0'
+    compile 'com.github.h-omer:neo4j-versioner-core:2.0.0'
 }
 ```
 
@@ -92,7 +94,7 @@ Legend
 
 name | parameters | return values | description
 ---- | ---------- | ------------- | -----------
-[graph.versioner.init](#init) | entityLabel, *{key:value,...}*, *{key:value,...}*, *additionalLabel*, *date* | **node** | Create an Entity node with an optional initial State.
+[graph.versioner.init](#init) | entityLabel, *{key:value,...}*, *{key:value,...}*, *additionalLabel*, *date* | **node** | Create an Entity node with it's R node and an optional initial State.
 [graph.versioner.update](#update) | **entity**, *{key:value,...}*, *additionalLabel*, *date* | **node** | Add a new State to the given Entity.
 [graph.versioner.patch](#patch) | **entity**, *{key:value,...}*, *additionalLabel*, *date* | **node** | Add a new State to the given Entity, starting from the previous one. It will update all the properties, not labels.
 [graph.versioner.patch.from](#patch-from) | **entity**, **state**, *date* | **node** | Add a new State to the given Entity, starting from the given one. It will update all the properties, not labels.
@@ -108,6 +110,7 @@ name | parameters | return values | description
 [graph.versioner.diff](#diff) | **stateFrom**, **stateTo** | diff | Get a list of differences that must be applied to stateFrom in order to convert it into stateTo.
 [graph.versioner.diff.from.previous](#diff-from-previous) | **state** | diff | Get a list of differences that must be applied to the previous statusof the given one in order to become the given state.
 [graph.versioner.diff.from.current](#diff-from-current) | **state** | diff | Get a list of differences that must be applied to the given state in order to become the current entity state.
+[graph.versioner.relationship.create](#relationship-create) | **entitySource**, **entityDestination**, **relationshipType**, *date* | **relationship** | Creates a new state for the source entity connected to the R node of the destination relationship
 
 ## init
 
@@ -613,6 +616,40 @@ diff | diff
 
 ```cypher
 MATCH (s:State {code:2}) WITH s CALL graph.versioner.diff.from.current(s) YIELD diff RETURN diff
+```
+
+##relationship-create
+
+This procedure is used to connect two Graph Versioner entities with a versioned Neo4j relationship.
+This method creates a new `CURRENT` state for the Entity, and connects it with the R state of the destination Entity.
+The procedure will return the newly created relationship.
+If date is given , `date` of the new state including the relationship will be the specified one.
+
+### Details
+
+#### Name
+
+`graph.versioner.relationship.create`
+
+#### Parameters
+
+name | necessity | details
+---- | --------- | -------
+`entitySource`, | mandatory | The source entity, where the new state will be created.
+`entityDestination` | mandatory | The destination entity, containing the `R` node where the new relationship will point.
+`type` | mandatory | The type of the relationship that will be created.
+`date` | optional | The time-in-millis of creation of the relationship.
+
+#### Return value
+
+name | type
+---- | ----
+relationship | Relationship
+
+### Example call
+
+```cypher
+MATCH (person:Entity:Person), (city:Entity:City) WITH person, city CALL graph.versioner.relationship.create(person, city, 'LIVES_IN') YELD relationship RETURN relationship
 ```
 
 # Feedback
