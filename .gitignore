@@ -23,5 +23,6 @@ hs_err_pid*
 
 # Gradle #
 /build/
+.gradle/
 
 script/
