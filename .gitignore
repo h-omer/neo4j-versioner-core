@@ -22,10 +22,6 @@ hs_err_pid*
 /.DS_Store
 
 # Gradle #
-.gradle
 /build/
-gradle
-gradlew
-gradlew.bat
 
 script/
