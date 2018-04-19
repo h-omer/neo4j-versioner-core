@@ -52,3 +52,7 @@ You can find the full documentation [here](https://h-omer.github.io/neo4j-versio
 ## Feedback
 
 We would appreciate your feedback about our Versioner Core, how to improve and fix (we hope not so many! :see_no_evil:) any bad things. Say yours in the [issue](https://github.com/h-omer/neo4j-versioner-core/issues) section.
+
+## Buy us a coffee :coffee:
+
+This project is developed during our free time, and our free time is mostly during evening/night! So coffee is really helpful during our sessions :sweat_smile:. If you want to help us with that, you can buy us some :coffee: thanks to [PayPal](https://www.paypal.me/mfalcier/2)!
