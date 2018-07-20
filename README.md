@@ -1,5 +1,4 @@
 [![Build Status](https://travis-ci.org/h-omer/neo4j-versioner-core.svg?branch=master)](https://travis-ci.org/h-omer/neo4j-versioner-core)
-[![Dependency Status](https://www.versioneye.com/user/projects/593a42a03601b10036e095b7/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/593a42a03601b10036e095b7)
 [![GitHub version](https://badge.fury.io/gh/h-omer%2Fneo4j-versioner-core.svg)](https://badge.fury.io/gh/h-omer%2Fneo4j-versioner-core)
 
 # Neo4j Versioner Core
@@ -29,7 +28,7 @@ It's based on the following data model:
 A little example on how you can add a `State` node to a given Entity:
 
 ```cypher
-MATCH (d:Device) WITH d CALL graph.versioner.update(d, {context:'some details'}, 'Error', 593920000000) YIELD node RETURN node
+MATCH (d:Device) WITH d CALL graph.versioner.update(d, {context:'some details'}, 'Error', localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node
 ```
 
 And how to retrieve the current `State`:
