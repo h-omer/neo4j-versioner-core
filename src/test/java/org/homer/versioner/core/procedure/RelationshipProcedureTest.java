@@ -8,9 +8,12 @@ import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Relationship;
 import org.neo4j.harness.junit.Neo4jRule;
 
+import java.time.LocalDateTime;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.homer.versioner.core.Utility.convertEpochToLocalDateTime;
 
 /**
  * RelationshipProcedureTest class, it contains all the method used to test RelationshipProcedure class methods
@@ -104,18 +107,18 @@ public class RelationshipProcedureTest extends GenericProcedureTest {
             Node entityA = initEntity(session);
             Node entityB = initEntity(session);
             String testType = "testType";
-            Long date = 999L;
+            Long date = 593920000000L;
 
             // When
-            String query = "MATCH (a:Entity), (b:Entity) WHERE id(a) = %d AND id(b) = %d WITH a, b CALL graph.versioner.relationship.create(a, b, '%s', %d) YIELD relationship RETURN relationship";
-            session.run(String.format(query, entityA.id(), entityB.id(), testType, date));
+            String query = "MATCH (a:Entity), (b:Entity) WHERE id(a) = %d AND id(b) = %d WITH a, b CALL graph.versioner.relationship.create(a, b, '%s', localdatetime('1988-10-27T02:46:40')) YIELD relationship RETURN relationship";
+            session.run(String.format(query, entityA.id(), entityB.id(), testType));
 
             // Then
             String querySourceCurrent = "MATCH (e:Entity)-[r:CURRENT]->(:State)-[:%s]->(:R) WHERE id(e) = %d RETURN r";
             Relationship currentRelationship = session.run(String.format(querySourceCurrent, testType, entityA.id())).single().get("r").asRelationship();
 
             assertThat(currentRelationship)
-                    .matches(rel -> rel.containsKey("date") && rel.get("date").asLong() == date);
+                    .matches(rel -> rel.containsKey("date") && rel.get("date").asLocalDateTime().equals(convertEpochToLocalDateTime(date)));
         }
     }
 

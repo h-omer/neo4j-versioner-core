@@ -9,6 +9,7 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,7 +28,7 @@ public class Update extends CoreProcedure {
             @Name("entity") Node entity,
             @Name(value = "stateProps", defaultValue = "{}") Map<String, Object> stateProps,
             @Name(value = "additionalLabel", defaultValue = "") String additionalLabel,
-            @Name(value = "date", defaultValue = "0") long date) {
+            @Name(value = "date", defaultValue = "null") LocalDateTime date) {
 
         // Creating the new State
         List<String> labelNames = new ArrayList<>(Collections.singletonList(STATE_LABEL));
@@ -36,13 +37,13 @@ public class Update extends CoreProcedure {
         }
         Node result = setProperties(db.createNode(asLabels(labelNames)), stateProps);
 
-        long instantDate = (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
+        LocalDateTime instantDate = defaultToNow(date);
 
         // Getting the CURRENT rel if it exist
         Spliterator<Relationship> currentRelIterator = entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING).spliterator();
         StreamSupport.stream(currentRelIterator, false).forEach(currentRel -> {
             Node currentState = currentRel.getEndNode();
-            Long currentDate = (Long) currentRel.getProperty("date");
+            LocalDateTime currentDate = (LocalDateTime) currentRel.getProperty("date");
 
             // Creating PREVIOUS relationship between the current and the new State
             result.createRelationshipTo(currentState, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
@@ -69,10 +70,10 @@ public class Update extends CoreProcedure {
             @Name("entity") Node entity,
             @Name(value = "stateProps", defaultValue = "{}") Map<String, Object> stateProps,
             @Name(value = "additionalLabel", defaultValue = "") String additionalLabel,
-            @Name(value = "date", defaultValue = "0") long date) {
+            @Name(value = "date", defaultValue = "null") LocalDateTime date) {
 
         List<String> labelNames = getStateLabels(additionalLabel);
-        long instantDate = defaultToNow(date);
+        LocalDateTime instantDate = defaultToNow(date);
 
         Node newState = getCurrentRelationship(entity)
                 .map(currentRelationship -> createPatchedState(stateProps, labelNames, instantDate, currentRelationship))
@@ -92,9 +93,9 @@ public class Update extends CoreProcedure {
     public Stream<NodeOutput> patchFrom(
             @Name("entity") Node entity,
             @Name("state") Node state,
-            @Name(value = "date", defaultValue = "0") long date) {
+            @Name(value = "date", defaultValue = "null") LocalDateTime date) {
 
-        long instantDate = defaultToNow (date);
+        LocalDateTime instantDate = defaultToNow (date);
         List<String> labels = streamOfIterable(state.getLabels()).map(Label::name).collect(Collectors.toList());
 
         checkRelationship(entity, state);
@@ -107,10 +108,10 @@ public class Update extends CoreProcedure {
         return Stream.of(new NodeOutput(newState));
     }
 
-    private Node createPatchedState(Map<String, Object> stateProps, List<String> labels, long instantDate, Relationship currentRelationship) {
+    private Node createPatchedState(Map<String, Object> stateProps, List<String> labels, LocalDateTime instantDate, Relationship currentRelationship) {
 
         Node currentState = currentRelationship.getEndNode();
-        Long currentDate = (Long) currentRelationship.getProperty("date");
+        LocalDateTime currentDate = (LocalDateTime) currentRelationship.getProperty("date");
         Node entity = currentRelationship.getStartNode();
 
         // Patching the current node into the new one.

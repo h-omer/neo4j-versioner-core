@@ -22,9 +22,9 @@ The current data model uses three kind of nodes: the Entity nodes, created by th
 The `State` node can be seen as the set of mutable properties which regards the Entity, which possesses only immutable properties.
 The `R` node is a "technical" node, used only to avoid having tons of relationships pointing the entity, it will be pointed to all the states of other entities having relationships with the current `Entity`
 There are 5 different relationships:
-* `(:Entity)-[:CURRENT {date: 123456789}]-(:State)`, representing the current Entity `State`;
-* `(:Entity)-[:HAS_STATE {startDate: 123456788, endDate: 123456789}]-(State)`, representing an Entity `State`, it will have an endDate only if the `State` node is not the current one;
-* `(newerState:State)-[:PREVIOUS {date: 123456788}]->(older:State)`, representing the previous `State` of the indexed one.
+* `(:Entity)-[:CURRENT {date: localdatetime('1988-10-27T02:46:40')}]-(:State)`, representing the current Entity `State`;
+* `(:Entity)-[:HAS_STATE {startDate: localdatetime('1988-10-27T00:00:00'), endDate: localdatetime('1988-10-27T02:46:40')}]-(State)`, representing an Entity `State`, it will have an endDate only if the `State` node is not the current one;
+* `(newerState:State)-[:PREVIOUS {date: localdatetime('1988-10-27T00:00:00')}]->(older:State)`, representing the previous `State` of the indexed one.
 * `(rollbackedState:State)-[:ROLLBACK]->(older:State)`, representing that one `State` has been rolled back to a previous one. 
 * `(:R)-[:FOR]->(:Entity)`, that connects an `Entity` with it's own relationships node.
 
@@ -108,7 +108,7 @@ name | parameters | return values | description
 [graph.versioner.rollback.to](#rollback-to) | **entity**, **state**, *date* | **node** | Rollback the current State to the given one.
 [graph.versioner.rollback.nth](#rollback-nth) | **entity**, nth, *date* | **node** | Rollback the given Entity to the nth previous State.
 [graph.versioner.diff](#diff) | **stateFrom**, **stateTo** | diff | Get a list of differences that must be applied to stateFrom in order to convert it into stateTo.
-[graph.versioner.diff.from.previous](#diff-from-previous) | **state** | diff | Get a list of differences that must be applied to the previous statusof the given one in order to become the given state.
+[graph.versioner.diff.from.previous](#diff-from-previous) | **state** | diff | Get a list of differences that must be applied to the previous status of the given one in order to become the given state.
 [graph.versioner.diff.from.current](#diff-from-current) | **state** | diff | Get a list of differences that must be applied to the given state in order to become the current entity state.
 [graph.versioner.relationship.create](#relationship-create) | **entitySource**, **entityDestination**, **relationshipType**, *date* | **relationship** | Creates a new state for the source entity connected to the R node of the destination relationship
 
@@ -132,7 +132,7 @@ name | necessity | detail
 `{key:value,...}` | optional | A Map representing the Entity immutable properties.
 `{key:value,...}` | optional | A Map representing the `State` properties.
 `additionalLabel` | optional | The name of an additional Label to the new State.
-`date` | optional | The time-in-millis value of a given date, used instead of the current one.
+`date` | optional | The LocalDateTime value of a given date, used instead of the current one.
 
 #### Return value
 
@@ -143,7 +143,7 @@ node | Node
 ### Example call
 
 ```cypher
-CALL graph.versioner.init('Person', {ssn: 123456789, name: 'Marco'}, {address: 'Via Roma 11'}) YIELD node RETURN node
+CALL graph.versioner.init('Person', {ssn: localdatetime('1988-10-27T02:46:40'), name: 'Marco'}, {address: 'Via Roma 11'}) YIELD node RETURN node
 ```
 
 ## update
@@ -165,7 +165,7 @@ name | necessity | detail
 `entity` | mandatory | The entity node to operate with.
 `{key:value,...}` | mandatory | A Map representing the `State` properties.
 `additionalLabel` | optional | The name of an additional Label to the new State.
-`date` | optional | The time-in-millis value of a given date, used instead of the current one.
+`date` | optional | The LocalDateTime value of a given date, used instead of the current one.
 
 #### Return value
 
@@ -177,7 +177,7 @@ node | Node
 ### Example call
 
 ```cypher
-MATCH (d:Device) WITH d CALL graph.versioner.update(d, {context:'some details'}, 'Error', 593920000000) YIELD node RETURN node
+MATCH (d:Device) WITH d CALL graph.versioner.update(d, {context:'some details'}, 'Error', localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node
 ```
 
 ## patch
@@ -199,7 +199,7 @@ name | necessity | detail
 `entity` | mandatory | The entity node to operate with.
 `{key:value,...}` | mandatory | A Map representing the `State` properties.
 `additionalLabel` | optional | The name of an additional Label to the new State.
-`date` | optional | The time-in-millis value of a given date, used instead of the current one.
+`date` | optional | The LocalDateTime value of a given date, used instead of the current one.
 
 #### Return value
 
@@ -210,7 +210,7 @@ node | Node
 ### Example call
 
 ```cypher
-MATCH (d:Device) WITH d CALL graph.versioner.patch(d, {warnings: 'some warnings'}, 'Warning', 593920000000) YIELD node RETURN node
+MATCH (d:Device) WITH d CALL graph.versioner.patch(d, {warnings: 'some warnings'}, 'Warning', localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node
 ```
 
 ## patch from
@@ -229,7 +229,7 @@ name | necessity | detail
 ---- | --------- | ------
 `entity` | mandatory | The entity node to operate with.
 `state` | mandatory | The `State` used to patch the current state from.
-`date` | optional | The time-in-millis value of a given date, used instead of the current one.
+`date` | optional | The LocalDateTime value of a given date, used instead of the current one.
 
 #### Return value
 
@@ -240,7 +240,7 @@ node | Node
 ### Example call
 
 ```cypher
-MATCH (d:Device)-[:HAS_STATE->(s:State {code:2}) WITH d,s CALL graph.versioner.patch.from(d, s, 593920000000) YIELD node RETURN node
+MATCH (d:Device)-[:HAS_STATE->(s:State {code:2}) WITH d,s CALL graph.versioner.patch.from(d, s, localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node
 ```
 
 ## get current path
@@ -382,7 +382,7 @@ This procedure is used to retrieve a specific Entity `State` node, that has been
 name | necessity | detail 
 ---- | --------- | ------
 `entity` | mandatory | The entity node to operate with.
-`date` | mandatory | The time-in-millis value of a given date.
+`date` | mandatory | The LocalDateTime value of a given date.
 
 #### Return value
 
@@ -393,7 +393,7 @@ node | node
 ### Example call
 
 ```cypher
-MATCH (d:Device) WITH d CALL graph.versioner.get.by.date(d, 593920000000) YIELD node RETURN node
+MATCH (d:Device) WITH d CALL graph.versioner.get.by.date(d, localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node
 ```
 
 ## get nth state
@@ -444,7 +444,7 @@ If only one current `State` is available, `null` will be returned. If `date` is 
 name | necessity | detail 
 ---- | --------- | ------
 `entity` | mandatory | The entity node to operate with.
-`date` | optional | The time-in-millis value of a given date, used instead of the current one.
+`date` | optional | The LocalDateTime value of a given date, used instead of the current one.
 
 #### Return value
 
@@ -455,7 +455,7 @@ node | node
 ### Example call
 
 ```cypher
-MATCH (d:Device) WITH d CALL graph.versioner.rollback(d, 593920000000) YIELD node RETURN node
+MATCH (d:Device) WITH d CALL graph.versioner.rollback(d, localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node
 ```
 
 ## rollback to
@@ -477,7 +477,7 @@ name | necessity | detail
 ---- | --------- | ------
 `entity` | mandatory | The entity node to operate with.
 `state` | mandatory | The State node to rollback to.
-`date` | optional | The time-in-millis value of a given date, used instead of the current one.
+`date` | optional | The LocalDateTime value of a given date, used instead of the current one.
 
 #### Return value
 
@@ -488,7 +488,7 @@ node | node
 ### Example call
 
 ```cypher
-MATCH (d:Device)-[:HAS_STATE]->(s:State {code:2}) WITH d, s CALL graph.versioner.rollback.to(d, s, 593920000000) YIELD node RETURN node
+MATCH (d:Device)-[:HAS_STATE]->(s:State {code:2}) WITH d, s CALL graph.versioner.rollback.to(d, s, localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node
 ```
 
 ## rollback nth
@@ -510,7 +510,7 @@ name | necessity | detail
 ---- | --------- | ------
 `entity` | mandatory | The entity node to operate with.
 `nth` | mandatory | A number representing the nth `State` to rollback to.
-`date` | optional | The time-in-millis value of a given date, used instead of the current one.
+`date` | optional | The LocalDateTime value of a given date, used instead of the current one.
 
 #### Return value
 
@@ -521,7 +521,7 @@ node | node
 ### Example call
 
 ```cypher
-MATCH (d:Device) WITH d CALL graph.versioner.rollback.nth(d, 3, 593920000000) YIELD node RETURN node
+MATCH (d:Device) WITH d CALL graph.versioner.rollback.nth(d, 3, localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node
 ```
 
 ## diff
@@ -638,7 +638,7 @@ name | necessity | details
 `entitySource`, | mandatory | The source entity, where the new state will be created.
 `entityDestination` | mandatory | The destination entity, containing the `R` node where the new relationship will point.
 `type` | mandatory | The type of the relationship that will be created.
-`date` | optional | The time-in-millis of creation of the relationship.
+`date` | optional | The LocalDateTime of creation of the relationship.
 
 #### Return value
 

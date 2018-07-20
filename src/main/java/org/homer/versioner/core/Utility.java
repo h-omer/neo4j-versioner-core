@@ -5,6 +5,9 @@ import org.homer.versioner.core.output.NodeOutput;
 import org.homer.versioner.core.output.RelationshipOutput;
 import org.neo4j.graphdb.*;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -102,7 +105,7 @@ public class Utility {
      * @param result              a {@link Node} representing the new current State
      * @return {@link Node}
      */
-    public static Node currentStateUpdate(Node entity, long instantDate, Relationship currentRelationship, Node currentState, Long currentDate, Node result) {
+    public static Node currentStateUpdate(Node entity, LocalDateTime instantDate, Relationship currentRelationship, Node currentState, LocalDateTime currentDate, Node result) {
         // Creating PREVIOUS relationship between the current and the new State
         result.createRelationshipTo(currentState, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
 
@@ -126,7 +129,7 @@ public class Utility {
      * @param entity      a {@link Node} representing the Entity
      * @param instantDate the new current State date
      */
-    public static void addCurrentState(Node state, Node entity, long instantDate) {
+    public static void addCurrentState(Node state, Node entity, LocalDateTime instantDate) {
         entity.createRelationshipTo(state, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, instantDate);
         entity.createRelationshipTo(state, RelationshipType.withName(HAS_STATE_TYPE)).setProperty(START_DATE_PROP, instantDate);
     }
@@ -175,13 +178,13 @@ public class Utility {
     }
 
     /**
-     * Sets the date to the current millis if it's 0
+     * Sets the date to the current dateTime if it's null
      *
-     * @param date a {@link long} representing the milliseconds of the date
-     * @return {@link long} milliseconds of the processed date
+     * @param date a {@link LocalDateTime} representing the milliseconds of the date
+     * @return {@link LocalDateTime} milliseconds of the processed date
      */
-    public static long defaultToNow(long date) {
-        return (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
+    public static LocalDateTime defaultToNow(LocalDateTime date) {
+        return (date == null) ? convertEpochToLocalDateTime(Calendar.getInstance().getTimeInMillis()) : date;
     }
 
     /**
@@ -215,5 +218,9 @@ public class Utility {
 
     public static Optional<Node> getCurrentNode(Node entity) {
         return getCurrentRelationship(entity).map(Relationship::getEndNode);
+    }
+
+    public static LocalDateTime convertEpochToLocalDateTime(Long epochDateTime) {
+        return Instant.ofEpochMilli(epochDateTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 }

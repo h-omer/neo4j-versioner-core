@@ -31,10 +31,10 @@ public class RollbackTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
-            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:593900000000, endDate:59391000000}]->(s:State:Test {key:'initialValue'})");
-            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:593900000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
+            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-26T00:00:00'), endDate:localdatetime('1988-10-27T00:00:00')}]->(s:State:Test {key:'initialValue'})");
+            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:localdatetime('1988-10-26T00:00:00')}]->(s)");
 
             // When
             StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.rollback(e) YIELD node RETURN node");
@@ -59,12 +59,12 @@ public class RollbackTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
-            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:593900000000, endDate:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE {startDate:593900000000, endDate:593910000000}]->(s:State) CREATE (sc)-[:PREVIOUS {date:593900000000}]->(s)");
-            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:593800000000, endDate:593900000000}]->(s:State:Test {key:'initialValue'})");
-            session.run("MATCH (new:State)<-[:HAS_STATE {startDate:593900000000, endDate:593910000000}]-(e:Entity)-[:HAS_STATE {startDate:593800000000, endDate:593900000000}]->(old:State) CREATE (new)-[:PREVIOUS {date:593800000000}]->(old)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
+            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-26T00:00:00'), endDate:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE {startDate:localdatetime('1988-10-26T00:00:00'), endDate:localdatetime('1988-10-27T00:00:00')}]->(s:State) CREATE (sc)-[:PREVIOUS {date:localdatetime('1988-10-26T00:00:00')}]->(s)");
+            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-25T00:00:00'), endDate:localdatetime('1988-10-26T00:00:00')}]->(s:State:Test {key:'initialValue'})");
+            session.run("MATCH (new:State)<-[:HAS_STATE {startDate:localdatetime('1988-10-26T00:00:00'), endDate:localdatetime('1988-10-27T00:00:00')}]-(e:Entity)-[:HAS_STATE {startDate:localdatetime('1988-10-25T00:00:00'), endDate:localdatetime('1988-10-26T00:00:00')}]->(old:State) CREATE (new)-[:PREVIOUS {date:localdatetime('1988-10-25T00:00:00')}]->(old)");
 
             // When
             session.run("MATCH (e:Entity) WITH e CALL graph.versioner.rollback(e) YIELD node RETURN node");
@@ -90,8 +90,8 @@ public class RollbackTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
 
             // When
             StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.rollback(e) YIELD node RETURN node");
@@ -111,10 +111,10 @@ public class RollbackTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
-            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:593900000000, endDate:59391000000}]->(s:State:Test {key:'initialValue'})");
-            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:593900000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
+            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-26T00:00:00'), endDate:localdatetime('1988-10-27T00:00:00')}]->(s:State:Test {key:'initialValue'})");
+            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:localdatetime('1988-10-26T00:00:00')}]->(s)");
 
             // When
             StatementResult result = session.run("MATCH (e:Entity)--(s:Test) WITH e, s CALL graph.versioner.rollback.to(e, s) YIELD node RETURN node");
@@ -139,10 +139,10 @@ public class RollbackTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
-            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:593900000000, endDate:59391000000}]->(s:State:Test {key:'initialValue'})");
-            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:593900000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
+            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-26T00:00:00'), endDate:localdatetime('1988-10-27T00:00:00')}]->(s:State:Test {key:'initialValue'})");
+            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:localdatetime('1988-10-26T00:00:00')}]->(s)");
             session.run("MATCH (p:State)<-[:PREVIOUS]-(s:State) CREATE (p)<-[:ROLLBACK]-(s)");
 
             // When
@@ -159,8 +159,8 @@ public class RollbackTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
 
             // When
             StatementResult result = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) WITH e, s CALL graph.versioner.rollback.to(e, s) YIELD node RETURN node");
@@ -176,12 +176,12 @@ public class RollbackTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
-            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:593900000000, endDate:59391000000}]->(s:State:Test {key:'initialValue'})");
-            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:593900000000}]->(s)");
-            session.run("CREATE (e:EntityBis {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:EntityBis)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
+            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-26T00:00:00'), endDate:localdatetime('1988-10-27T00:00:00')}]->(s:State:Test {key:'initialValue'})");
+            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:localdatetime('1988-10-26T00:00:00')}]->(s)");
+            session.run("CREATE (e:EntityBis {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:EntityBis)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
 
             StatementResult result = session.run("MATCH (e:Entity), (:EntityBis)-[:HAS_STATE]->(s:State) WITH e, s CALL graph.versioner.rollback.to(e, s) YIELD node RETURN node");
         }
@@ -197,11 +197,11 @@ public class RollbackTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(:State:Error {key:'initialValue'})"
-                    + "-[:PREVIOUS {date: 593900000000}]->(:State {key:'value'})-[:PREVIOUS {date: 593800000000}]->(:State:Test {key:'testValue'})");
-            session.run("MATCH (e:Entity)-[:CURRENT]->(s:Error) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
-            session.run("MATCH (e:Entity), (s:State {key:'value'}) CREATE (e)-[:HAS_STATE {startDate:593900000000, endDate:593910000000}]->(s)");
-            session.run("MATCH (e:Entity), (s:Test) CREATE (e)-[:HAS_STATE {startDate:593800000000, endDate:593900000000}]->(s)");
+            session.run("CREATE (:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(:State:Error {key:'initialValue'})"
+                    + "-[:PREVIOUS {date: localdatetime('1988-10-26T00:00:00')}]->(:State {key:'value'})-[:PREVIOUS {date: localdatetime('1988-10-25T00:00:00')}]->(:State:Test {key:'testValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:Error) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
+            session.run("MATCH (e:Entity), (s:State {key:'value'}) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-26T00:00:00'), endDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
+            session.run("MATCH (e:Entity), (s:Test) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-25T00:00:00'), endDate:localdatetime('1988-10-26T00:00:00')}]->(s)");
 
             // When
             StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.rollback.nth(e, 2) YIELD node RETURN node");
@@ -232,11 +232,11 @@ public class RollbackTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(:State:Error {key:'initialValue'})"
-                    + "-[:PREVIOUS]->(:State {key:'value'})-[:PREVIOUS {date: 593900000000}]->(:State:Test {key:'testValue'})");
-            session.run("MATCH (e:Entity)-[:CURRENT]->(s:Error) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
-            session.run("MATCH (e:Entity), (s:State {key:'value'}) CREATE (e)-[:HAS_STATE {startDate:593900000000, endDate:593910000000}]->(s)");
-            session.run("MATCH (e:Entity), (s:Test) CREATE (e)-[:HAS_STATE {startDate:593800000000, endDate:593900000000}]->(s)");
+            session.run("CREATE (:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(:State:Error {key:'initialValue'})"
+                    + "-[:PREVIOUS]->(:State {key:'value'})-[:PREVIOUS {date: localdatetime('1988-10-26T00:00:00')}]->(:State:Test {key:'testValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:Error) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
+            session.run("MATCH (e:Entity), (s:State {key:'value'}) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-26T00:00:00'), endDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
+            session.run("MATCH (e:Entity), (s:Test) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-25T00:00:00'), endDate:localdatetime('1988-10-26T00:00:00')}]->(s)");
 
             // When
             StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.rollback.nth(e, 0) YIELD node RETURN node");

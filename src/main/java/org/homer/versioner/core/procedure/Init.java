@@ -10,6 +10,7 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,7 @@ public class Init extends CoreProcedure {
             @Name(value = "entityProps", defaultValue = "{}") Map<String, Object> entityProps,
             @Name(value = "stateProps", defaultValue = "{}") Map<String, Object> stateProps,
             @Name(value = "additionalLabel", defaultValue = "") String additionalLabel,
-            @Name(value = "date", defaultValue = "0") long date) {
+            @Name(value = "date", defaultValue = "null") LocalDateTime date) {
 
         Node entity = createNode(entityProps, singletonList(entityLabel));
 
@@ -50,9 +51,9 @@ public class Init extends CoreProcedure {
         return setProperties(db.createNode(asLabels(labels)), properties);
     }
 
-    private void connectWithCurrentRelationship(Node entity, Node state, long date) {
+    private void connectWithCurrentRelationship(Node entity, Node state, LocalDateTime date) {
 
-        long instantDate = (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
+        LocalDateTime instantDate = (date == null) ? convertEpochToLocalDateTime(Calendar.getInstance().getTimeInMillis()) : date;
         addCurrentState(state, entity, instantDate);
     }
 

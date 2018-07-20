@@ -9,6 +9,7 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -77,7 +78,7 @@ public class Get {
     @Description("graph.versioner.get.by.date(entity, date) - Get State node by the given Entity node, created at the given date")
     public Stream<NodeOutput> getStateByDate(
             @Name("entity") Node entity,
-            @Name("date") long date) {
+            @Name("date") LocalDateTime date) {
 
         return StreamSupport.stream(entity.getRelationships(RelationshipType.withName(Utility.HAS_STATE_TYPE), Direction.OUTGOING).spliterator(), false)
                 .filter(relationship -> relationship.getProperty(Utility.START_DATE_PROP).equals(date))

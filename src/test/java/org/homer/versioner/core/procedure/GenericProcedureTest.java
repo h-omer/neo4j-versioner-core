@@ -7,6 +7,6 @@ public abstract class GenericProcedureTest {
 
     protected static Node initEntity(Session session) {
 
-        return session.run("CREATE (:R)-[:FOR]->(e:Entity)-[:CURRENT {date:593910000000}]->(:State) RETURN e").single().get("e").asNode();
+        return session.run("CREATE (:R)-[:FOR]->(e:Entity)-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(:State) RETURN e").single().get("e").asNode();
     }
 }

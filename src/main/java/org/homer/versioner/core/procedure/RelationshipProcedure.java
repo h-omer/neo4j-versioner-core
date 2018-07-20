@@ -14,6 +14,7 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -32,7 +33,7 @@ public class RelationshipProcedure extends CoreProcedure {
             @Name("entitySource") Node entitySource,
             @Name("entityDestination") Node entityDestination,
             @Name(value = "type", defaultValue = "") String type,
-            @Name(value = "date", defaultValue = "0") long date) {
+            @Name(value = "date", defaultValue = "null") LocalDateTime date) {
 
         isEntityOrThrowException(entitySource);
         isEntityOrThrowException(entityDestination);
@@ -57,7 +58,7 @@ public class RelationshipProcedure extends CoreProcedure {
                 .map(Relationship::getStartNode);
     }
 
-    private Optional<Node> createNewSourceState(Node entitySource, long date) throws VersionerCoreException {
+    private Optional<Node> createNewSourceState(Node entitySource, LocalDateTime date) throws VersionerCoreException {
 
         Update updateProcedure = new UpdateBuilder().withLog(log).withDb(db).build().orElseThrow(() -> new VersionerCoreException("Unable to initialize update procedure"));
         return updateProcedure.patch(entitySource, Collections.emptyMap(), StringUtils.EMPTY, date)
