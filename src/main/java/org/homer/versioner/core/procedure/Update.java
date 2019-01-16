@@ -43,6 +43,7 @@ public class Update extends CoreProcedure {
         Spliterator<Relationship> currentRelIterator = entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING).spliterator();
         StreamSupport.stream(currentRelIterator, false).forEach(currentRel -> {
             Node currentState = currentRel.getEndNode();
+
             LocalDateTime currentDate = (LocalDateTime) currentRel.getProperty("date");
 
             // Creating PREVIOUS relationship between the current and the new State
@@ -54,6 +55,9 @@ public class Update extends CoreProcedure {
 
             // Refactoring current relationship and adding the new ones
             currentRel.delete();
+
+            // Connecting the new current state to Rs
+            connectStateToRs(currentState, result);
         });
 
         // Connecting the new current state to the Entity
@@ -74,8 +78,10 @@ public class Update extends CoreProcedure {
 
         List<String> labelNames = getStateLabels(additionalLabel);
         LocalDateTime instantDate = defaultToNow(date);
+        Optional<Relationship> currentRelationshipOpt = getCurrentRelationship(entity);
 
-        Node newState = getCurrentRelationship(entity)
+        // Creating the new current state
+        Node newState = currentRelationshipOpt
                 .map(currentRelationship -> createPatchedState(stateProps, labelNames, instantDate, currentRelationship))
                 .orElseGet(() -> {
                     Node result = setProperties(db.createNode(asLabels(labelNames)), stateProps);
@@ -83,28 +89,42 @@ public class Update extends CoreProcedure {
                     return result;
                 });
 
+        //Copy all the relationships
+        currentRelationshipOpt.ifPresent(rel -> connectStateToRs(rel.getEndNode(), newState));
+
         log.info(LOGGER_TAG + "Patched Entity with id {}, adding a State with id {}", entity.getId(), newState.getId());
 
         return Stream.of(new NodeOutput(newState));
     }
 
     @Procedure(value = "graph.versioner.patch.from", mode = Mode.WRITE)
-    @Description("graph.versioner.patch.from(entity, state, date) - Add a new State to the given Entity, starting from the given one. It will update all the properties, not asLabels.")
+    @Description("graph.versioner.patch.from(entity, state, useCurrentRel, date) - Add a new State to the given Entity, starting from the given one. It will update all the properties, not asLabels.")
     public Stream<NodeOutput> patchFrom(
             @Name("entity") Node entity,
             @Name("state") Node state,
+            @Name(value = "useCurrentRel", defaultValue = "true") Boolean useCurrentRel,
             @Name(value = "date", defaultValue = "null") LocalDateTime date) {
 
-        LocalDateTime instantDate = defaultToNow (date);
+        LocalDateTime instantDate = defaultToNow(date);
         List<String> labels = streamOfIterable(state.getLabels()).map(Label::name).collect(Collectors.toList());
 
         checkRelationship(entity, state);
 
-        Node newState = getCurrentRelationship(entity)
+        Optional<Relationship> currentRelationshipOpt = getCurrentRelationship(entity);
+
+        Node newState = currentRelationshipOpt
                 .map(currentRelationship -> createPatchedState(state.getAllProperties(), labels, instantDate, currentRelationship))
                 .orElseThrow(() -> new VersionerCoreException("Can't find any current State node for the given entity."));
 
+        //Copy all the relationships
+        if (useCurrentRel) {
+            currentRelationshipOpt.ifPresent(rel -> connectStateToRs(rel.getEndNode()   , newState));
+        } else {
+            connectStateToRs(state, newState);
+        }
+
         log.info(LOGGER_TAG + "Patched Entity with id {}, adding a State with id {}", entity.getId(), newState.getId());
+
         return Stream.of(new NodeOutput(newState));
     }
 
@@ -120,13 +140,12 @@ public class Update extends CoreProcedure {
         Node newStateToElaborate = setProperties(db.createNode(asLabels(labels)), patchedProps);
 
         // Updating CURRENT state
-        final Node result = currentStateUpdate(entity, instantDate, currentRelationship, currentState, currentDate, newStateToElaborate);
+        return currentStateUpdate(entity, instantDate, currentRelationship, currentState, currentDate, newStateToElaborate);
+    }
 
-        //Copy all the relationships
-        streamOfIterable(currentState.getRelationships(Direction.OUTGOING))
+    private void connectStateToRs(Node sourceState, Node newState) {
+        streamOfIterable(sourceState.getRelationships(Direction.OUTGOING))
                 .filter(rel -> rel.getEndNode().hasLabel(Label.label("R")))
-                .forEach(rel -> RelationshipProcedure.createRelationship(result, rel.getEndNode(), rel.getType().name()));
-
-        return result;
+                .forEach(rel -> RelationshipProcedure.createRelationship(newState, rel.getEndNode(), rel.getType().name()));
     }
 }

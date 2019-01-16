@@ -3,6 +3,7 @@ package org.homer.versioner.core;
 import org.homer.versioner.core.exception.VersionerCoreException;
 import org.homer.versioner.core.output.NodeOutput;
 import org.homer.versioner.core.output.RelationshipOutput;
+import org.homer.versioner.core.procedure.RelationshipProcedure;
 import org.neo4j.graphdb.*;
 
 import java.time.Instant;
@@ -214,10 +215,6 @@ public class Utility {
     public static Optional<Relationship> getCurrentRelationship(Node entity) {
         return streamOfIterable(entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING))
                 .findFirst();
-    }
-
-    public static Optional<Node> getCurrentNode(Node entity) {
-        return getCurrentRelationship(entity).map(Relationship::getEndNode);
     }
 
     public static LocalDateTime convertEpochToLocalDateTime(Long epochDateTime) {

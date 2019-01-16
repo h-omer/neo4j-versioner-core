@@ -341,7 +341,7 @@ public class UpdateTest extends GenericProcedureTest {
             Node originalState = stateResult.single().get("s").asNode();
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity)-[:HAS_STATE]->(s:Test) WITH e, s CALL graph.versioner.patch.from(e, s, localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node");
+            StatementResult result = session.run("MATCH (e:Entity)-[:HAS_STATE]->(s:Test) WITH e, s CALL graph.versioner.patch.from(e, s, false, localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node");
             Node currentState = result.single().get("node").asNode();
             StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
@@ -372,7 +372,7 @@ public class UpdateTest extends GenericProcedureTest {
             Node originalState = stateResult.single().get("s").asNode();
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity)-[:HAS_STATE]->(s:Test) WITH e, s CALL graph.versioner.patch.from(e, s, localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node");
+            StatementResult result = session.run("MATCH (e:Entity)-[:HAS_STATE]->(s:Test) WITH e, s CALL graph.versioner.patch.from(e, s, false,localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node");
             Node currentState = result.single().get("node").asNode();
             StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
