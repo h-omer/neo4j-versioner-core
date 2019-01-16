@@ -146,6 +146,6 @@ public class Update extends CoreProcedure {
     private void connectStateToRs(Node sourceState, Node newState) {
         streamOfIterable(sourceState.getRelationships(Direction.OUTGOING))
                 .filter(rel -> rel.getEndNode().hasLabel(Label.label("R")))
-                .forEach(rel -> RelationshipProcedure.createRelationship(newState, rel.getEndNode(), rel.getType().name()));
+                .forEach(rel -> RelationshipProcedure.createRelationship(newState, rel.getEndNode(), rel.getType().name(), rel.getAllProperties()));
     }
 }

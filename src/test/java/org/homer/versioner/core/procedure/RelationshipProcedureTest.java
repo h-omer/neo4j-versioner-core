@@ -110,7 +110,7 @@ public class RelationshipProcedureTest extends GenericProcedureTest {
             Long date = 593920000000L;
 
             // When
-            String query = "MATCH (a:Entity), (b:Entity) WHERE id(a) = %d AND id(b) = %d WITH a, b CALL graph.versioner.relationship.create(a, b, '%s', localdatetime('1988-10-27T02:46:40')) YIELD relationship RETURN relationship";
+            String query = "MATCH (a:Entity), (b:Entity) WHERE id(a) = %d AND id(b) = %d WITH a, b CALL graph.versioner.relationship.create(a, b, '%s', {}, localdatetime('1988-10-27T02:46:40')) YIELD relationship RETURN relationship";
             session.run(String.format(query, entityA.id(), entityB.id(), testType));
 
             // Then

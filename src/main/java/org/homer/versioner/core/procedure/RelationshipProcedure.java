@@ -16,6 +16,7 @@ import org.neo4j.procedure.Procedure;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -32,7 +33,8 @@ public class RelationshipProcedure extends CoreProcedure {
     public Stream<RelationshipOutput> relationshipCreate(
             @Name("entitySource") Node entitySource,
             @Name("entityDestination") Node entityDestination,
-            @Name(value = "type", defaultValue = "") String type,
+            @Name(value = "type") String type,
+            @Name(value = "relProps", defaultValue = "{}") Map<String, Object> relProps,
             @Name(value = "date", defaultValue = "null") LocalDateTime date) {
 
         isEntityOrThrowException(entitySource);
@@ -42,15 +44,17 @@ public class RelationshipProcedure extends CoreProcedure {
         Optional<Node> destinationRNode = getRNode(entityDestination);
 
         if (sourceCurrentState.isPresent() && destinationRNode.isPresent()) {
-            return streamOfRelationships(createRelationship(sourceCurrentState.get(), destinationRNode.get(), type));
+            return streamOfRelationships(createRelationship(sourceCurrentState.get(), destinationRNode.get(), type, relProps));
         } else {
             return Stream.empty();
         }
     }
 
-    protected static Relationship createRelationship(Node source, Node destination, String type) {
+    protected static Relationship createRelationship(Node source, Node destination, String type, Map<String, Object> relProps) {
 
-        return source.createRelationshipTo(destination, RelationshipType.withName(type));
+        Relationship rel = source.createRelationshipTo(destination, RelationshipType.withName(type));
+        relProps.forEach(rel::setProperty);
+        return rel;
     }
 
     private Optional<Node> getRNode(Node entity) {
