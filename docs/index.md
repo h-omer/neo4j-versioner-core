@@ -20,13 +20,11 @@ Neo4j Versioner Core has been developed by [Alberto D'Este](https://github.com/a
 
 The current data model uses three kind of nodes: the Entity nodes, created by the user through a given Label; the `State` nodes, managed by the Graph Versioner and the `R` nodes, used for the versioning of relationships
 The `State` node can be seen as the set of mutable properties which regards the Entity, which possesses only immutable properties.
-The `R` node is a "technical" node, used only to avoid having tons of relationships pointing the entity, it will be pointed to all the states of other entities having relationships with the current `Entity`
-There are 5 different relationships:
+There are 4 different relationships:
 * `(:Entity)-[:CURRENT {date: localdatetime('1988-10-27T02:46:40')}]-(:State)`, representing the current Entity `State`;
 * `(:Entity)-[:HAS_STATE {startDate: localdatetime('1988-10-27T00:00:00'), endDate: localdatetime('1988-10-27T02:46:40')}]-(State)`, representing an Entity `State`, it will have an endDate only if the `State` node is not the current one;
 * `(newerState:State)-[:PREVIOUS {date: localdatetime('1988-10-27T00:00:00')}]->(older:State)`, representing the previous `State` of the indexed one.
-* `(rollbackedState:State)-[:ROLLBACK]->(older:State)`, representing that one `State` has been rolled back to a previous one. 
-* `(:R)-[:FOR]->(:Entity)`, that connects an `Entity` with it's own relationships node.
+* `(rollbackedState:State)-[:ROLLBACK]->(older:State)`, representing that one `State` has been rolled back to a previous one.
 
 This is how the data model looks like:
 
@@ -38,6 +36,7 @@ From version 2.0.0 you can now also version relationships: When a node is create
 * `(:Entity {number: 1})<-[:FOR]-(:R)<-[:CUSTOM_RELATIONSHIP]-(:State)<-[:HAS_STATE]-(:Entity {number: 2})`, representing that an `Entity` is related to its own `R` node.
 
 The `R` node is the `Entity`'s access point for its own incoming relationships; this way, we can also keep track of relationships verse.
+Remember, only relationships managed with this tool will be versioned.
 
 # Procedures Reference
 
@@ -222,6 +221,8 @@ MATCH (d:Device) WITH d CALL graph.versioner.patch(d, {warnings: 'some warnings'
 
 This procedure is used in order to patch the current `State` of an existing Entity node, updating/creating the properties using the those one the given `State`, maintaining the oldest and untouched one. It will create a new `State` node, deleting the previous `CURRENT` relationship, creating a new one to the new created node with the current date (or the optional one, if given); then it update the last `HAS_STATE` relationship adding the current/given date as the `endDate` and creating a new `HAS_STATE` relationship with `startDate` as the current/given date. It will also create a new relationship between the new and the last `State` called `PREVIOUS`, with the old date as a property.
 If the given `State` is not related with the given Entity, an error will occur.`
+If a custom relationship exists between the current `State` and a `R` node, that relationship is kept on the updated `State` if useCurrentRel is set to `true`` otherwise it will use the given `State` one.
+
 ### Details
 
 #### Name`
@@ -234,7 +235,7 @@ name | necessity | detail
 ---- | --------- | ------
 `entity` | mandatory | The entity node to operate with.
 `state` | mandatory | The `State` used to patch the current state from.
-`useCurrentRel` | optional | If true it will keep the custom relationships of the current `State` on the patched one, if false it will use the passed state's one.
+`useCurrentRel` | optional | Default value `true`. If `true` it will keep the custom relationships of the current `State` on the patched one, if `false it will use the passed state's one.
 `date` | optional | The LocalDateTime value of a given date, used instead of the current one.
 
 #### Return value
@@ -437,7 +438,7 @@ MATCH (d:Device) WITH d CALL graph.versioner.get.nth.state(d, 3) YIELD node RETU
 This procedure is used to rollback the current Entity `State` node, to the first available one. 
 The first available `State` node, is the first previous node, without an existing `ROLLBACK` relationship.
 If only one current `State` is available, `null` will be returned. If `date` is given, that value will be used instead of the current one.
-
+This procedure will also take care about custom relationships' rollback.
 
 ### Details
 
@@ -470,6 +471,7 @@ This procedure is used to rollback the current Entity `State` node, to the given
 If the given `State` is the current one, or if it already has a `CURRENT` relationship, `null` will be returned. 
 If `date` is given, that value will be used instead of the current one.
 If the given `State` is not related with the given Entity, an error will occur.`
+This procedure will also take care about custom relationships' rollback.
 
 ### Details
 
@@ -502,6 +504,7 @@ MATCH (d:Device)-[:HAS_STATE]->(s:State {code:2}) WITH d, s CALL graph.versioner
 This procedure is used to rollback the current Entity `State` node, to the nth one. 
 If the nth value is 0, `null` will be returned. 
 If `date` is given, that value will be used instead of the current one.
+This procedure will also take care about custom relationships' rollback.
 
 
 ### Details

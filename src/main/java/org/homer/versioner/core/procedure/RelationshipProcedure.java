@@ -50,7 +50,7 @@ public class RelationshipProcedure extends CoreProcedure {
         }
     }
 
-    protected static Relationship createRelationship(Node source, Node destination, String type, Map<String, Object> relProps) {
+    public static Relationship createRelationship(Node source, Node destination, String type, Map<String, Object> relProps) {
 
         Relationship rel = source.createRelationshipTo(destination, RelationshipType.withName(type));
         relProps.forEach(rel::setProperty);

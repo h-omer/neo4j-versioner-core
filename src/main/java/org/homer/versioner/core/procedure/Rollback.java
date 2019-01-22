@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static org.homer.versioner.core.Utility.defaultToNow;
+import static org.homer.versioner.core.procedure.Update.connectStateToRs;
 import static org.neo4j.procedure.Mode.WRITE;
 
 /**
@@ -56,6 +57,8 @@ public class Rollback extends CoreProcedure {
                 // Updating CURRENT state
                 result = Utility.currentStateUpdate(entity, instantDate, currentRelationship, currentState, currentDate, result);
 
+                //Copy all the relationships
+                connectStateToRs(rollbackState, result);
 
                 log.info(Utility.LOGGER_TAG + "Rollback executed for Entity with id {}, adding a State with id {}", entity.getId(), result.getId());
                 return Optional.of(result);
@@ -107,6 +110,9 @@ public class Rollback extends CoreProcedure {
 
                     // Updating CURRENT state
                     result = Utility.currentStateUpdate(entity, instantDate, currentRelationship, currentState, currentDate, result);
+
+                    //Copy all the relationships
+                    connectStateToRs(state, result);
 
                     log.info(Utility.LOGGER_TAG + "Rollback executed for Entity with id {}, adding a State with id {}", entity.getId(), result.getId());
 

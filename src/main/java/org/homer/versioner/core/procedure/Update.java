@@ -143,7 +143,7 @@ public class Update extends CoreProcedure {
         return currentStateUpdate(entity, instantDate, currentRelationship, currentState, currentDate, newStateToElaborate);
     }
 
-    private void connectStateToRs(Node sourceState, Node newState) {
+    protected static void connectStateToRs(Node sourceState, Node newState) {
         streamOfIterable(sourceState.getRelationships(Direction.OUTGOING))
                 .filter(rel -> rel.getEndNode().hasLabel(Label.label("R")))
                 .forEach(rel -> RelationshipProcedure.createRelationship(newState, rel.getEndNode(), rel.getType().name(), rel.getAllProperties()));
