@@ -18,7 +18,7 @@ Neo4j Versioner Core has been developed by [Alberto D'Este](https://github.com/a
 
 It's based on the following data model: 
 
-![Data Model](https://raw.githubusercontent.com/h-omer/neo4j-versioner-core/master/docs/images/data-model.png)
+![Data Model](https://raw.githubusercontent.com/h-omer/neo4j-versioner-core/master/docs/images/es-data-model.png)
 
 ## Examples
 
