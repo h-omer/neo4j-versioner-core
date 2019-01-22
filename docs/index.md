@@ -16,9 +16,9 @@ Apache License 2.0
 
 Neo4j Versioner Core has been developed by [Alberto D'Este](https://github.com/albertodeste) and [Marco Falcier](https://github.com/mfalcier).
 
-## Entity-State Data Model
+## Entity-State (ES) Data Model
 
-The current data model uses three kind of nodes: the Entity nodes, created by the user through a given Label; the `State` nodes, managed by the Graph Versioner and the `R` nodes, used for the versioning of relationships
+The current data model uses two kind of nodes: the Entity nodes, created by the user through a given Label and the `State` nodes, managed by the Graph Versioner.
 The `State` node can be seen as the set of mutable properties which regards the Entity, which possesses only immutable properties.
 There are 4 different relationships:
 * `(:Entity)-[:CURRENT {date: localdatetime('1988-10-27T02:46:40')}]-(:State)`, representing the current Entity `State`;
@@ -28,15 +28,19 @@ There are 4 different relationships:
 
 This is how the data model looks like:
 
-![Data Model](https://raw.githubusercontent.com/h-omer/neo4j-versioner-core/master/docs/images/data-model.png)
+![ES Data Model](https://raw.githubusercontent.com/h-omer/neo4j-versioner-core/master/docs/images/es-data-model.png)
 
-## Entity-State-R Data Model
+## Entity-State-R (ESR) Data Model
 
 From version 2.0.0 you can now also version relationships: When a node is created, also its own `R` node is created. So from the previous model, you can also add this new relationship:
 * `(:Entity {number: 1})<-[:FOR]-(:R)<-[:CUSTOM_RELATIONSHIP]-(:State)<-[:HAS_STATE]-(:Entity {number: 2})`, representing that an `Entity` is related to its own `R` node.
 
 The `R` node is the `Entity`'s access point for its own incoming relationships; this way, we can also keep track of relationships verse.
 Remember, only relationships managed with this tool will be versioned.
+
+This is how the data model looks like:
+
+![ESR Data Model](https://raw.githubusercontent.com/h-omer/neo4j-versioner-core/master/docs/images/esr-data-model.png)
 
 # Procedures Reference
 
