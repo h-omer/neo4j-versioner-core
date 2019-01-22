@@ -33,9 +33,9 @@ This is how the data model looks like:
 ## Entity-State-R (ESR) Data Model
 
 From version 2.0.0 you can now also version relationships: When a node is created, also its own `R` node is created. So from the previous model, you can also add this new relationship:
-* `(:Entity {number: 1})<-[:FOR]-(:R)<-[:CUSTOM_RELATIONSHIP]-(:State)<-[:HAS_STATE]-(:Entity {number: 2})`, representing that an `Entity` is related to its own `R` node.
+* `(:Entity {number: 1})<-[:FOR]-(:R)<-[:CUSTOM_RELATIONSHIP]-(:State)<-[:HAS_STATE]-(:Entity {number: 2})`, representing that an Entity is related to its own `R` node.
 
-The `R` node is the `Entity`'s access point for its own incoming relationships; this way, we can also keep track of relationships verse.
+The `R` node is the Entity's access point for its own incoming relationships; this way, we can also keep track of relationships verse.
 Remember, only relationships managed with this tool will be versioned.
 
 This is how the data model looks like:
@@ -632,7 +632,7 @@ diff | diff
 MATCH (s:State {code:2}) WITH s CALL graph.versioner.diff.from.current(s) YIELD diff RETURN diff
 ```
 
-##relationship create
+## relationship create
 
 This procedure is used to connect two Graph Versioner entities with a versioned Neo4j relationship.
 This method creates a new `CURRENT` state for the Entity, and connects it with the R state of the destination Entity.
@@ -667,7 +667,7 @@ relationship | Relationship
 MATCH (person:Entity:Person), (city:Entity:City) WITH person, city CALL graph.versioner.relationship.create(person, city, 'LIVES_IN') YIELD relationship RETURN relationship
 ```
 
-##relationship delete
+## relationship delete
 
 This procedure is used to delete a relationship between two Graph Versioner entities.
 This method creates a new `CURRENT` state for the Entity, and removes the previous custom relationship of the given type.
