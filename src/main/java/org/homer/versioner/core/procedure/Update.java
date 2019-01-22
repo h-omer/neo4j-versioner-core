@@ -98,7 +98,7 @@ public class Update extends CoreProcedure {
     }
 
     @Procedure(value = "graph.versioner.patch.from", mode = Mode.WRITE)
-    @Description("graph.versioner.patch.from(entity, state, useCurrentRel, date) - Add a new State to the given Entity, starting from the given one. It will update all the properties, not asLabels.")
+    @Description("graph.versioner.patch.from(entity, state, useCurrentRel, date) - Add a new State to the given Entity, starting from the given one. It will update all the properties, not asLabels. If useCurrentRel is false, it will replace the current rels to Rs with the state ones.")
     public Stream<NodeOutput> patchFrom(
             @Name("entity") Node entity,
             @Name("state") Node state,

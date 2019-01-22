@@ -29,7 +29,7 @@ public class RelationshipProcedure extends CoreProcedure {
 
     //TODO add properties parameter to relationship
     @Procedure(value = "graph.versioner.relationship.create", mode = Mode.WRITE)
-    @Description("graph.versioner.relationship.create(entityA, entityB, type, date) - Create a relationship from entitySource to entityDestination with the given type for the specified date.")
+    @Description("graph.versioner.relationship.create(entityA, entityB, type, relProps, date) - Create a relationship from entitySource to entityDestination with the given type and/or properties for the specified date.")
     public Stream<RelationshipOutput> relationshipCreate(
             @Name("entitySource") Node entitySource,
             @Name("entityDestination") Node entityDestination,

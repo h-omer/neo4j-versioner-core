@@ -16,7 +16,7 @@ Apache License 2.0
 
 Neo4j Versioner Core has been developed by [Alberto D'Este](https://github.com/albertodeste) and [Marco Falcier](https://github.com/mfalcier).
 
-## Data Model
+## Entity-State Data Model
 
 The current data model uses three kind of nodes: the Entity nodes, created by the user through a given Label; the `State` nodes, managed by the Graph Versioner and the `R` nodes, used for the versioning of relationships
 The `State` node can be seen as the set of mutable properties which regards the Entity, which possesses only immutable properties.
@@ -32,9 +32,12 @@ This is how the data model looks like:
 
 ![Data Model](https://raw.githubusercontent.com/h-omer/neo4j-versioner-core/master/docs/images/data-model.png)
 
-## Use cases
+## Entity-State-R Data Model
 
-You can find some examples and use cases in the repository [wiki](https://github.com/h-omer/neo4j-versioner-core/wiki) (work in progress!).
+From version 2.0.0 you can now also version relationships: When a node is created, also its own `R` node is created. So from the previous model, you can also add this new relationship:
+* `(:Entity {number: 1})<-[:FOR]-(:R)<-[:CUSTOM_RELATIONSHIP]-(:State)<-[:HAS_STATE]-(:Entity {number: 2})`, representing that an `Entity` is related to its own `R` node.
+
+The `R` node is the `Entity`'s access point for its own incoming relationships; this way, we can also keep track of relationships verse.
 
 # Procedures Reference
 
@@ -97,7 +100,7 @@ name | parameters | return values | description
 [graph.versioner.init](#init) | entityLabel, *{key:value,...}*, *{key:value,...}*, *additionalLabel*, *date* | **node** | Create an Entity node with it's R node and an optional initial State.
 [graph.versioner.update](#update) | **entity**, *{key:value,...}*, *additionalLabel*, *date* | **node** | Add a new State to the given Entity.
 [graph.versioner.patch](#patch) | **entity**, *{key:value,...}*, *additionalLabel*, *date* | **node** | Add a new State to the given Entity, starting from the previous one. It will update all the properties, not labels.
-[graph.versioner.patch.from](#patch-from) | **entity**, **state**, *date* | **node** | Add a new State to the given Entity, starting from the given one. It will update all the properties, not labels.
+[graph.versioner.patch.from](#patch-from) | **entity**, **state**, *useCurrentRel*, *date* | **node** | Add a new State to the given Entity, starting from the given one. It will update all the properties, not labels.
 [graph.versioner.get.current.path](#get-current-path) | **entity** | **path** | Get a the current path (Entity, State and rels) for the given Entity.
 [graph.versioner.get.current.state](#get-current-state) | **entity** | **node** | Get the current State node for the given Entity.
 [graph.versioner.get.all](#get-all) | **entity** | **path** | Get an Entity State path for the given Entity.
@@ -110,7 +113,7 @@ name | parameters | return values | description
 [graph.versioner.diff](#diff) | **stateFrom**, **stateTo** | diff | Get a list of differences that must be applied to stateFrom in order to convert it into stateTo.
 [graph.versioner.diff.from.previous](#diff-from-previous) | **state** | diff | Get a list of differences that must be applied to the previous status of the given one in order to become the given state.
 [graph.versioner.diff.from.current](#diff-from-current) | **state** | diff | Get a list of differences that must be applied to the given state in order to become the current entity state.
-[graph.versioner.relationship.create](#relationship-create) | **entitySource**, **entityDestination**, **relationshipType**, *date* | **relationship** | Creates a new state for the source entity connected to the R node of the destination relationship
+[graph.versioner.relationship.create](#relationship-create) | **entitySource**, **entityDestination**, **relationshipType**, *{key:value,...}*, *date* | **relationship** | Creates a new state for the source entity connected to the R node of the destination relationship
 
 ## init
 
@@ -151,6 +154,7 @@ CALL graph.versioner.init('Person', {ssn: localdatetime('1988-10-27T02:46:40'), 
 This procedure is used in order to update a status of an existing Entity node. It will create a new `State` node, deleting the previous `CURRENT` relationship, creating a new one to the new created node with the current date (or the optional one, if given); then it update the last `HAS_STATE` relationship adding the current/given date as the `endDate` and creating a new `HAS_STATE` relationship with `startDate` as the current/given date. It will also create a new relationship between the new and the last `State` called `PREVIOUS`, with the old date as a property.
 If the Entity node has no `State`, it will create a new `State` node, with both `HAS_STATE` and `CURRENT` relationships.
 If no properties are passed, a new `State` node will be created, without properties.
+If a custom relationship exists between the current `State` and a `R` node, that relationship is kept on the updated `State`.
 
 ### Details
 
@@ -185,6 +189,7 @@ MATCH (d:Device) WITH d CALL graph.versioner.update(d, {context:'some details'},
 This procedure is used in order to patch the current status of an existing Entity node, updating/creating the given properties, maintaining the oldest and untouched one. It will create a new `State` node, deleting the previous `CURRENT` relationship, creating a new one to the new created node with the current date (or the optional one, if given); then it update the last `HAS_STATE` relationship adding the current/given date as the `endDate` and creating a new `HAS_STATE` relationship with `startDate` as the current/given date. It will also create a new relationship between the new and the last `State` called `PREVIOUS`, with the old date as a property.
 If the Entity node has no `State`, it will create a new `State` node, with both `HAS_STATE` and `CURRENT` relationships. 
 If no properties are passed, a copy of the `CURRENT` node will be created as the new `State`.
+If a custom relationship exists between the current `State` and a `R` node, that relationship is kept on the updated `State`.
 
 ### Details
 
@@ -229,6 +234,7 @@ name | necessity | detail
 ---- | --------- | ------
 `entity` | mandatory | The entity node to operate with.
 `state` | mandatory | The `State` used to patch the current state from.
+`useCurrentRel` | optional | If true it will keep the custom relationships of the current `State` on the patched one, if false it will use the passed state's one.
 `date` | optional | The LocalDateTime value of a given date, used instead of the current one.
 
 #### Return value
@@ -240,7 +246,7 @@ node | Node
 ### Example call
 
 ```cypher
-MATCH (d:Device)-[:HAS_STATE->(s:State {code:2}) WITH d,s CALL graph.versioner.patch.from(d, s, localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node
+MATCH (d:Device)-[:HAS_STATE->(s:State {code:2}) WITH d,s CALL graph.versioner.patch.from(d, s, true, localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node
 ```
 
 ## get current path
@@ -638,6 +644,7 @@ name | necessity | details
 `entitySource`, | mandatory | The source entity, where the new state will be created.
 `entityDestination` | mandatory | The destination entity, containing the `R` node where the new relationship will point.
 `type` | mandatory | The type of the relationship that will be created.
+`{key:value,...}` | optional | A Map representing the relationship properties.
 `date` | optional | The LocalDateTime of creation of the relationship.
 
 #### Return value
