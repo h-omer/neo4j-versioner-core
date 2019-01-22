@@ -24,6 +24,7 @@ public class Utility {
     public static final String HAS_STATE_TYPE = "HAS_STATE";
     public static final String PREVIOUS_TYPE = "PREVIOUS";
     public static final String ROLLBACK_TYPE = "ROLLBACK";
+    public static final String FOR_TYPE = "FOR";
     public static final String DATE_PROP = "date";
     public static final String START_DATE_PROP = "startDate";
     public static final String END_DATE_PROP = "endDate";
@@ -33,7 +34,7 @@ public class Utility {
     public static final String DIFF_OPERATION_ADD = "ADD";
     public static final String DIFF_OPERATION_UPDATE = "UPDATE";
     public static final List<String> DIFF_OPERATIONS_SORTING = Arrays.asList(DIFF_OPERATION_REMOVE, DIFF_OPERATION_UPDATE, DIFF_OPERATION_ADD);
-
+    public static final List<String> SYSTEM_RELS = Arrays.asList(CURRENT_TYPE, HAS_STATE_TYPE, PREVIOUS_TYPE, ROLLBACK_TYPE);
 
     /**
      * Sets a {@link Map} of properties to a {@link Node}
@@ -219,5 +220,9 @@ public class Utility {
 
     public static LocalDateTime convertEpochToLocalDateTime(Long epochDateTime) {
         return Instant.ofEpochMilli(epochDateTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
+    public static Boolean isSystemType(String type) {
+        return SYSTEM_RELS.contains(type);
     }
 }

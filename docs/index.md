@@ -116,7 +116,8 @@ name | parameters | return values | description
 [graph.versioner.diff](#diff) | **stateFrom**, **stateTo** | diff | Get a list of differences that must be applied to stateFrom in order to convert it into stateTo.
 [graph.versioner.diff.from.previous](#diff-from-previous) | **state** | diff | Get a list of differences that must be applied to the previous status of the given one in order to become the given state.
 [graph.versioner.diff.from.current](#diff-from-current) | **state** | diff | Get a list of differences that must be applied to the given state in order to become the current entity state.
-[graph.versioner.relationship.create](#relationship-create) | **entitySource**, **entityDestination**, **relationshipType**, *{key:value,...}*, *date* | **relationship** | Creates a new state for the source entity connected to the R node of the destination relationship
+[graph.versioner.relationship.create](#relationship-create) | **entitySource**, **entityDestination**, **relationshipType**, *{key:value,...}*, *date* | **relationship** | Creates a new state for the source entity connected to the R node of the destination with a relationship of the given type.
+[graph.versioner.relationship.delete](#relationship-delete) | **entitySource**, **entityDestination**, **relationshipType**, *date* | **result** | Creates a new state for the source entity without a custom relationship of the given type.
 
 ## init
 
@@ -631,7 +632,7 @@ diff | diff
 MATCH (s:State {code:2}) WITH s CALL graph.versioner.diff.from.current(s) YIELD diff RETURN diff
 ```
 
-##relationship-create
+##relationship create
 
 This procedure is used to connect two Graph Versioner entities with a versioned Neo4j relationship.
 This method creates a new `CURRENT` state for the Entity, and connects it with the R state of the destination Entity.
@@ -663,7 +664,41 @@ relationship | Relationship
 ### Example call
 
 ```cypher
-MATCH (person:Entity:Person), (city:Entity:City) WITH person, city CALL graph.versioner.relationship.create(person, city, 'LIVES_IN') YELD relationship RETURN relationship
+MATCH (person:Entity:Person), (city:Entity:City) WITH person, city CALL graph.versioner.relationship.create(person, city, 'LIVES_IN') YIELD relationship RETURN relationship
+```
+
+##relationship delete
+
+This procedure is used to delete a relationship between two Graph Versioner entities.
+This method creates a new `CURRENT` state for the Entity, and removes the previous custom relationship of the given type.
+The procedure will return `true` if the relationship was deleted successfully, `false` otherwise.
+If date is given , `date` of the new state including the relationship will be the specified one.
+
+### Details
+
+#### Name
+
+`graph.versioner.relationship.delete`
+
+#### Parameters
+
+name | necessity | details
+---- | --------- | -------
+`entitySource`, | mandatory | The source entity, where the new state will be created.
+`entityDestination` | mandatory | The destination entity, containing the `R` node where the new relationship will point.
+`type` | mandatory | The type of the relationship that will be deleted.
+`date` | optional | The LocalDateTime of creation of the relationship.
+
+#### Return value
+
+name | type
+---- | ----
+result | Boolean
+
+### Example call
+
+```cypher
+MATCH (person:Entity:Person), (city:Entity:City) WITH person, city CALL graph.versioner.relationship.delete(person, city, 'LIVES_IN') YIELD result RETURN result
 ```
 
 # Feedback

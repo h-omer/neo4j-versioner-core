@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.homer.versioner.core.builders.UpdateBuilder;
 import org.homer.versioner.core.core.CoreProcedure;
 import org.homer.versioner.core.exception.VersionerCoreException;
+import org.homer.versioner.core.output.BooleanOutput;
 import org.homer.versioner.core.output.RelationshipOutput;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -27,7 +28,6 @@ import static org.homer.versioner.core.Utility.*;
  */
 public class RelationshipProcedure extends CoreProcedure {
 
-    //TODO add properties parameter to relationship
     @Procedure(value = "graph.versioner.relationship.create", mode = Mode.WRITE)
     @Description("graph.versioner.relationship.create(entityA, entityB, type, relProps, date) - Create a relationship from entitySource to entityDestination with the given type and/or properties for the specified date.")
     public Stream<RelationshipOutput> relationshipCreate(
@@ -50,7 +50,35 @@ public class RelationshipProcedure extends CoreProcedure {
         }
     }
 
-    public static Relationship createRelationship(Node source, Node destination, String type, Map<String, Object> relProps) {
+    @Procedure(value = "graph.versioner.relationship.delete", mode = Mode.WRITE)
+    @Description("graph.versioner.relationship.delete(entityA, entityB, type, date) - Delete a custom type relationship from entitySource's current State to entityDestination for the specified date.")
+    public Stream<BooleanOutput> relationshipDelete(
+            @Name("entitySource") Node entitySource,
+            @Name("entityDestination") Node entityDestination,
+            @Name(value = "type") String type,
+            @Name(value = "date", defaultValue = "null") LocalDateTime date) {
+
+        isEntityOrThrowException(entitySource);
+        isEntityOrThrowException(entityDestination);
+        if (isSystemType(type)) {
+            throw new VersionerCoreException("It's not possible to delete a System Relationship like " + type + ".");
+        }
+
+        Optional<Node> sourceCurrentState = createNewSourceState(entitySource, defaultToNow(date));
+        Optional<Node> destinationRNode = getRNode(entityDestination);
+
+        Update updateProcedure = new UpdateBuilder().withLog(log).withDb(db).build().orElseThrow(() -> new VersionerCoreException("Unable to initialize update procedure"));
+
+        if (sourceCurrentState.isPresent() && destinationRNode.isPresent()) {
+            updateProcedure.update(entitySource, sourceCurrentState.get().getAllProperties(), "", null);
+            getCurrentRelationship(entitySource).ifPresent(rel -> rel.getEndNode().getRelationships(RelationshipType.withName(type), Direction.OUTGOING).forEach(Relationship::delete));
+            return Stream.of(new BooleanOutput(Boolean.TRUE));
+        } else {
+            return Stream.of(new BooleanOutput(Boolean.FALSE));
+        }
+    }
+
+    static Relationship createRelationship(Node source, Node destination, String type, Map<String, Object> relProps) {
 
         Relationship rel = source.createRelationshipTo(destination, RelationshipType.withName(type));
         relProps.forEach(rel::setProperty);
