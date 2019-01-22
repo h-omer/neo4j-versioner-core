@@ -1,6 +1,3 @@
-[![Build Status](https://travis-ci.org/h-omer/neo4j-versioner-core.svg?branch=master)](https://travis-ci.org/h-omer/neo4j-versioner-core)
-[![GitHub version](https://badge.fury.io/gh/h-omer%2Fneo4j-versioner-core.svg)](https://badge.fury.io/gh/h-omer%2Fneo4j-versioner-core)
-
 # Neo4j Versioner Core
 
 Neo4j Versioner Core is a collection of procedures, aimed to help developers to manage the Entity-State model, by creating, updating and querying the graph.

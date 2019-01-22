@@ -252,7 +252,7 @@ node | Node
 ### Example call
 
 ```cypher
-MATCH (d:Device)-[:HAS_STATE->(s:State {code:2}) WITH d,s CALL graph.versioner.patch.from(d, s, true, localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node
+MATCH (d:Device)-[:HAS_STATE]->(s:State {code:2}) WITH d,s CALL graph.versioner.patch.from(d, s, true, localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node
 ```
 
 ## get current path
