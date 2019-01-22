@@ -25,7 +25,7 @@ public class Diff {
     public Stream<DiffOutput> diff(
             @Name("stateFrom") Node stateFrom,
             @Name("stateTo") Node stateTo) {
-        return diffBetweenStates(Optional.of(stateFrom), Optional.of(stateTo));
+        return diffBetweenStates(stateFrom, stateTo);
     }
 
     @Procedure(value = "graph.versioner.diff.from.previous", mode = DEFAULT)
@@ -33,15 +33,10 @@ public class Diff {
     public Stream<DiffOutput> diffFromPrevious(
             @Name("state") Node state) {
 
-		Optional<Node> stateFrom = Optional.ofNullable(state.getSingleRelationship(RelationshipType.withName(Utility.PREVIOUS_TYPE), Direction.OUTGOING)).map(Relationship::getEndNode);
-
-		Stream<DiffOutput> result = Stream.empty();
-
-		if(stateFrom.isPresent()){
-			result = diffBetweenStates(stateFrom, Optional.of(state));
-		}
-
-		return result;
+		return Optional.ofNullable(state.getSingleRelationship(RelationshipType.withName(Utility.PREVIOUS_TYPE), Direction.OUTGOING))
+				.map(Relationship::getEndNode)
+				.map(sFrom -> diffBetweenStates(sFrom, state))
+				.orElse(Stream.empty());
     }
 
 	@Procedure(value = "graph.versioner.diff.from.current", mode = DEFAULT)
@@ -49,17 +44,13 @@ public class Diff {
 	public Stream<DiffOutput> diffFromCurrent(
 			@Name("state") Node state) {
 
-		Optional<Node> currentState = Optional.ofNullable(state.getSingleRelationship(RelationshipType.withName(Utility.HAS_STATE_TYPE), Direction.INCOMING))
-				.map(Relationship::getStartNode).map(entity -> entity.getSingleRelationship(RelationshipType.withName(Utility.CURRENT_TYPE), Direction.OUTGOING))
-				.map(Relationship::getEndNode);
-
-		Stream<DiffOutput> result = Stream.empty();
-
-		if(currentState.isPresent() && !currentState.equals(Optional.of(state))){
-			result = diffBetweenStates(Optional.of(state), currentState);
-		}
-
-		return result;
+		return Optional.ofNullable(state.getSingleRelationship(RelationshipType.withName(Utility.HAS_STATE_TYPE), Direction.INCOMING))
+				.map(Relationship::getStartNode)
+				.map(entity -> entity.getSingleRelationship(RelationshipType.withName(Utility.CURRENT_TYPE), Direction.OUTGOING))
+				.map(Relationship::getEndNode)
+				.filter(current -> !current.equals(state))
+				.map(current -> diffBetweenStates(state, current))
+				.orElse(Stream.empty());
 	}
 
 	/**
@@ -69,11 +60,11 @@ public class Diff {
 	 * @param to
 	 * @return a {@link Stream<DiffOutput>}
 	 */
-	private Stream<DiffOutput> diffBetweenStates(Optional<Node> from, Optional<Node> to) {
+	private Stream<DiffOutput> diffBetweenStates(Node from, Node to) {
 		List<DiffOutput> diffs = new ArrayList<>();
 
-		Map<String, Object> propertiesFrom = from.map(Node::getAllProperties).orElse(Collections.emptyMap());
-		Map<String, Object> propertiesTo = to.map(Node::getAllProperties).orElse(Collections.emptyMap());
+		Map<String, Object> propertiesFrom = Optional.ofNullable(from).map(Node::getAllProperties).orElse(Collections.emptyMap());
+		Map<String, Object> propertiesTo = Optional.ofNullable(to).map(Node::getAllProperties).orElse(Collections.emptyMap());
 
 		//Getting updated and removed properties
 		propertiesFrom.forEach((key, value) -> {

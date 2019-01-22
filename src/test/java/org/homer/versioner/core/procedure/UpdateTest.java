@@ -1,5 +1,6 @@
 package org.homer.versioner.core.procedure;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.driver.v1.*;
@@ -8,12 +9,13 @@ import org.neo4j.driver.v1.types.Node;
 import org.neo4j.harness.junit.Neo4jRule;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.homer.versioner.core.Utility.convertEpochToLocalDateTime;
 import static org.junit.Assert.assertThat;
 
 /**
  * UpdateTest class, it contains all the method used to test Update class methods
  */
-public class UpdateTest {
+public class UpdateTest extends GenericProcedureTest {
     @Rule
     public Neo4jRule neo4j = new Neo4jRule()
 
@@ -30,8 +32,8 @@ public class UpdateTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
 
             // When
             StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, {key:'newValue'}) YIELD node RETURN node");
@@ -40,7 +42,6 @@ public class UpdateTest {
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
 
             // Then
-            assertThat(result.single().get("node").asNode().id(), equalTo(20L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2L));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
@@ -53,8 +54,8 @@ public class UpdateTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
 
             // When
             StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, {key:'newValue'}, 'Error') YIELD node RETURN node");
@@ -64,7 +65,6 @@ public class UpdateTest {
             StatementResult currentStateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s) return s");
 
             // Then
-            assertThat(result.single().get("node").asNode().id(), equalTo(20L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2L));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
@@ -78,11 +78,11 @@ public class UpdateTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, {key:'newValue'}, 'Error', 593920000000) YIELD node RETURN node");
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, {key:'newValue'}, 'Error', localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node");
             StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
             StatementResult nextResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) return s2");
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
@@ -91,13 +91,12 @@ public class UpdateTest {
             StatementResult hasStatusDateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State)-[:PREVIOUS]->(s2:State)<-[rel:HAS_STATE]-(e) RETURN rel.endDate as endDate");
 
             // Then
-            assertThat(result.single().get("node").asNode().id(), equalTo(20L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2L));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
             assertThat(currentStateResult.single().get("s").asNode().hasLabel("Error"), equalTo(true));
-            assertThat(dateResult.single().get("relDate").asLong(), equalTo(593920000000L));
-            assertThat(hasStatusDateResult.single().get("endDate").asLong(), equalTo(593920000000L));
+            assertThat(dateResult.single().get("relDate").asLocalDateTime(), equalTo(convertEpochToLocalDateTime(593920000000L)));
+            assertThat(hasStatusDateResult.single().get("endDate").asLocalDateTime(), equalTo(convertEpochToLocalDateTime(593920000000L)));
         }
     }
 
@@ -110,12 +109,11 @@ public class UpdateTest {
             session.run("CREATE (e:Entity {key:'immutableValue'})");
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, {key:'newValue'}, 'Error', 593920000000) YIELD node RETURN node");
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, {key:'newValue'}, 'Error', localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node");
             StatementResult correctResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(s) as stateId");
 
             // Then
-            assertThat(result.single().get("node").asNode().id(), equalTo(1L));
-            assertThat(correctResult.single().get("stateId").asLong(), equalTo(1L));
+            assertThat(correctResult.single().get("stateId").asLong(), equalTo(20L));
         }
     }
 
@@ -129,8 +127,8 @@ public class UpdateTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
 
             // When
             StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.patch(e, {key:'newValue', newKey:'newestValue'}) YIELD node RETURN node");
@@ -140,7 +138,6 @@ public class UpdateTest {
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
 
             // Then
-            assertThat(currentState.id(), equalTo(20L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2L));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
@@ -155,8 +152,8 @@ public class UpdateTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
 
             // When
             StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.patch(e, {key:'newValue', newKey:'newestValue'}, 'Error') YIELD node RETURN node");
@@ -167,7 +164,6 @@ public class UpdateTest {
             StatementResult currentStateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s) return s");
 
             // Then
-            assertThat(currentState.id(), equalTo(20L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2L));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
@@ -183,11 +179,11 @@ public class UpdateTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.patch(e, {key:'newValue', newKey:'newestValue'}, 'Error', 593920000000) YIELD node RETURN node");
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.patch(e, {key:'newValue', newKey:'newestValue'}, 'Error', localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node");
             Node currentState = result.single().get("node").asNode();
             StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
             StatementResult nextResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) return s2");
@@ -197,13 +193,12 @@ public class UpdateTest {
             StatementResult hasStatusDateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State)-[:PREVIOUS]->(s2:State)<-[rel:HAS_STATE]-(e) RETURN rel.endDate as endDate");
 
             // Then
-            assertThat(currentState.id(), equalTo(20L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2L));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
             assertThat(currentStateResult.single().get("s").asNode().hasLabel("Error"), equalTo(true));
-            assertThat(dateResult.single().get("relDate").asLong(), equalTo(593920000000L));
-            assertThat(hasStatusDateResult.single().get("endDate").asLong(), equalTo(593920000000L));
+            assertThat(dateResult.single().get("relDate").asLocalDateTime(), equalTo(convertEpochToLocalDateTime(593920000000L)));
+            assertThat(hasStatusDateResult.single().get("endDate").asLocalDateTime(), equalTo(convertEpochToLocalDateTime(593920000000L)));
             assertThat(currentState.get("key").asString(), equalTo("newValue"));
             assertThat(currentState.get("newKey").asString(), equalTo("newestValue"));
         }
@@ -215,11 +210,11 @@ public class UpdateTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.patch(e, {newKey:'newestValue'}, 'Error', 593920000000) YIELD node RETURN node");
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.patch(e, {newKey:'newestValue'}, 'Error', localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node");
             Node currentState = result.single().get("node").asNode();
             StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
             StatementResult nextResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) return s2");
@@ -229,13 +224,12 @@ public class UpdateTest {
             StatementResult hasStatusDateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State)-[:PREVIOUS]->(s2:State)<-[rel:HAS_STATE]-(e) RETURN rel.endDate as endDate");
 
             // Then
-            assertThat(currentState.id(), equalTo(20L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(2L));
             assertThat(nextResult.single().get("s2").asNode().id(), equalTo(1L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
             assertThat(currentStateResult.single().get("s").asNode().hasLabel("Error"), equalTo(true));
-            assertThat(dateResult.single().get("relDate").asLong(), equalTo(593920000000L));
-            assertThat(hasStatusDateResult.single().get("endDate").asLong(), equalTo(593920000000L));
+            assertThat(dateResult.single().get("relDate").asLocalDateTime(), equalTo(convertEpochToLocalDateTime(593920000000L)));
+            assertThat(hasStatusDateResult.single().get("endDate").asLocalDateTime(), equalTo(convertEpochToLocalDateTime(593920000000L)));
             assertThat(currentState.get("key").asString(), equalTo("initialValue"));
             assertThat(currentState.get("newKey").asString(), equalTo("newestValue"));
         }
@@ -250,12 +244,11 @@ public class UpdateTest {
             session.run("CREATE (e:Entity {key:'immutableValue'})");
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.patch(e, {key:'newValue'}, 'Error', 593920000000) YIELD node RETURN node");
+            StatementResult result = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.patch(e, {key:'newValue'}, 'Error', localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node");
             StatementResult correctResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) RETURN id(s) as stateId");
 
             // Then
-            assertThat(result.single().get("node").asNode().id(), equalTo(1L));
-            assertThat(correctResult.single().get("stateId").asLong(), equalTo(1L));
+            assertThat(correctResult.single().get("stateId").asLong(), equalTo(20L));
         }
     }
 
@@ -265,8 +258,8 @@ public class UpdateTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
             StatementResult stateResult = session.run("MATCH (s:State) RETURN s");
             Node state = stateResult.single().get("s").asNode();
 
@@ -280,6 +273,29 @@ public class UpdateTest {
         }
     }
 
+    @Test
+    public void shouldMaintainTheRelationshipsFromTheCurrentState() throws Throwable {
+
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
+
+            // Given
+            Node entityA = initEntity(session);
+            Node entityB = initEntity(session);
+
+            String createEntityRelationshipQuery = "MATCH (a:Entity)-[:CURRENT]->(s: State), (b:Entity)<-[:FOR]-(r:R) WHERE id(a) = %d AND id(b) = %d CREATE (s)-[:testType]->(r)";
+            session.run(String.format(createEntityRelationshipQuery, entityA.id(), entityB.id()));
+
+            // When
+            String patchQuery = "MATCH (e:Entity) WHERE id(e) = %d WITH e CALL graph.versioner.patch(e) YIELD node RETURN node";
+            StatementResult result = session.run(String.format(patchQuery, entityA.id()));
+
+            // Then
+            Assertions.assertThat(session.run(String.format("MATCH (a:Entity)-[:CURRENT]->(:State)-[:testType]->(:R)-[:FOR]->(b:Entity) WHERE id(a) = %d AND id(b) = %d RETURN a", entityA.id(), entityB.id())))
+                    .hasSize(1);
+        }
+    }
+
     /*------------------------------*/
     /*          patch.from          */
 	/*------------------------------*/
@@ -290,10 +306,10 @@ public class UpdateTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue', newKey:'oldestValue'})");
-            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
-            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:593900000000, endDate:59391000000}]->(s:State:Test {newKey:'newestValue'})");
-            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:593900000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue', newKey:'oldestValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
+            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-26T00:00:00'), endDate:localdatetime('1988-10-27T00:00:00')}]->(s:State:Test {newKey:'newestValue'})");
+            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:localdatetime('1988-10-26T00:00:00')}]->(s)");
             StatementResult stateResult = session.run("MATCH (s:Test) RETURN s");
             Node originalState = stateResult.single().get("s").asNode();
 
@@ -304,7 +320,6 @@ public class UpdateTest {
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
 
             // Then
-            assertThat(currentState.id(), equalTo(21L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(3L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
             assertThat(currentState.get("key").asString(), equalTo("initialValue"));
@@ -318,15 +333,15 @@ public class UpdateTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue', newKey:'oldestValue'})");
-            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
-            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:593900000000, endDate:59391000000}]->(s:State:Test {newKey:'newestValue'})");
-            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:593900000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue', newKey:'oldestValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
+            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-26T00:00:00'), endDate:localdatetime('1988-10-27T00:00:00')}]->(s:State:Test {newKey:'newestValue'})");
+            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:localdatetime('1988-10-26T00:00:00')}]->(s)");
             StatementResult stateResult = session.run("MATCH (s:Test) RETURN s");
             Node originalState = stateResult.single().get("s").asNode();
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity)-[:HAS_STATE]->(s:Test) WITH e, s CALL graph.versioner.patch.from(e, s, 593920000000) YIELD node RETURN node");
+            StatementResult result = session.run("MATCH (e:Entity)-[:HAS_STATE]->(s:Test) WITH e, s CALL graph.versioner.patch.from(e, s, false, localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node");
             Node currentState = result.single().get("node").asNode();
             StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
@@ -334,13 +349,12 @@ public class UpdateTest {
             StatementResult hasStatusDateResult = session.run("MATCH (e:Entity)-[:CURRENT]->(s:State)-[:PREVIOUS]->(s2:State)<-[rel:HAS_STATE]-(e) RETURN rel.endDate as endDate");
 
             // Then
-            assertThat(currentState.id(), equalTo(21L));
             assertThat(countStateResult.single().get("s").asLong(), equalTo(3L));
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
             assertThat(currentState.get("key").asString(), equalTo("initialValue"));
             assertThat(currentState.get("newKey").asString(), equalTo("newestValue"));
-            assertThat(dateResult.single().get("relDate").asLong(), equalTo(593920000000L));
-            assertThat(hasStatusDateResult.single().get("endDate").asLong(), equalTo(593920000000L));
+            assertThat(dateResult.single().get("relDate").asLocalDateTime(), equalTo(convertEpochToLocalDateTime(593920000000L)));
+            assertThat(hasStatusDateResult.single().get("endDate").asLocalDateTime(), equalTo(convertEpochToLocalDateTime(593920000000L)));
         }
     }
 
@@ -350,15 +364,15 @@ public class UpdateTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
-            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:593900000000, endDate:59391000000}]->(s:State:Test {newKey:'newestValue'})");
-            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:593900000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
+            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-26T00:00:00'), endDate:localdatetime('1988-10-27T00:00:00')}]->(s:State:Test {newKey:'newestValue'})");
+            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:localdatetime('1988-10-26T00:00:00')}]->(s)");
             StatementResult stateResult = session.run("MATCH (s:Test) RETURN s");
             Node originalState = stateResult.single().get("s").asNode();
 
             // When
-            StatementResult result = session.run("MATCH (e:Entity)-[:HAS_STATE]->(s:Test) WITH e, s CALL graph.versioner.patch.from(e, s, 593920000000) YIELD node RETURN node");
+            StatementResult result = session.run("MATCH (e:Entity)-[:HAS_STATE]->(s:Test) WITH e, s CALL graph.versioner.patch.from(e, s, false,localdatetime('1988-10-27T02:46:40')) YIELD node RETURN node");
             Node currentState = result.single().get("node").asNode();
             StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(s) as s");
             StatementResult correctStateResult = session.run("MATCH (s1:State)-[:PREVIOUS]->(s2:State) WITH s1 MATCH (e:Entity)-[:CURRENT]->(s1) return e");
@@ -371,8 +385,8 @@ public class UpdateTest {
             assertThat(correctStateResult.single().get("e").asNode().id(), equalTo(0L));
             assertThat(currentState.get("key").asString(), equalTo("initialValue"));
             assertThat(currentState.get("newKey").asString(), equalTo("newestValue"));
-            assertThat(dateResult.single().get("relDate").asLong(), equalTo(593920000000L));
-            assertThat(hasStatusDateResult.single().get("endDate").asLong(), equalTo(593920000000L));
+            assertThat(dateResult.single().get("relDate").asLocalDateTime(), equalTo(convertEpochToLocalDateTime(593920000000L)));
+            assertThat(hasStatusDateResult.single().get("endDate").asLocalDateTime(), equalTo(convertEpochToLocalDateTime(593920000000L)));
         }
     }
 
@@ -382,12 +396,12 @@ public class UpdateTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // Given
-            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
-            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:593900000000, endDate:59391000000}]->(s:State:Test {key:'initialValue'})");
-            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:593900000000}]->(s)");
-            session.run("CREATE (e:EntityBis {key:'immutableValue'})-[:CURRENT {date:593910000000}]->(s:State {key:'initialValue'})");
-            session.run("MATCH (e:EntityBis)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:593910000000}]->(s)");
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'}) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
+            session.run("MATCH (e:Entity) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-26T00:00:00'), endDate:localdatetime('1988-10-27T00:00:00')}]->(s:State:Test {key:'initialValue'})");
+            session.run("MATCH (sc:State)<-[:CURRENT]-(e:Entity)-[:HAS_STATE]->(s:Test) CREATE (sc)-[:PREVIOUS {date:localdatetime('1988-10-26T00:00:00')}]->(s)");
+            session.run("CREATE (e:EntityBis {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:EntityBis)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
 
             StatementResult result = session.run("MATCH (e:Entity), (:EntityBis)-[:HAS_STATE]->(s:State) WITH e, s CALL graph.versioner.patch.from(e, s) YIELD node RETURN node");
             Node currentState = result.single().get("node").asNode();

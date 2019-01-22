@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 #!/usr/bin/env bash
+=======
+#!/usr/bin/env sh
+>>>>>>> 2.0.0
 
 ##############################################################################
 ##
@@ -33,11 +37,19 @@ DEFAULT_JVM_OPTS=""
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD="maximum"
 
+<<<<<<< HEAD
 warn ( ) {
     echo "$*"
 }
 
 die ( ) {
+=======
+warn () {
+    echo "$*"
+}
+
+die () {
+>>>>>>> 2.0.0
     echo
     echo "$*"
     echo
@@ -154,6 +166,7 @@ if $cygwin ; then
     esac
 fi
 
+<<<<<<< HEAD
 # Split up the JVM_OPTS And GRADLE_OPTS values into an array, following the shell quoting and substitution rules
 function splitJvmOpts() {
     JVM_OPTS=("$@")
@@ -167,3 +180,21 @@ if [[ "$(uname)" == "Darwin" ]] && [[ "$HOME" == "$PWD" ]]; then
 fi
 
 exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" org.gradle.wrapper.GradleWrapperMain "$@"
+=======
+# Escape application args
+save () {
+    for i do printf %s\\n "$i" | sed "s/'/'\\\\''/g;1s/^/'/;\$s/\$/' \\\\/" ; done
+    echo " "
+}
+APP_ARGS=$(save "$@")
+
+# Collect all arguments for the java command, following the shell quoting and substitution rules
+eval set -- $DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS "\"-Dorg.gradle.appname=$APP_BASE_NAME\"" -classpath "\"$CLASSPATH\"" org.gradle.wrapper.GradleWrapperMain "$APP_ARGS"
+
+# by default we should be in the correct project dir, but when run from Finder on Mac, the cwd is wrong
+if [ "$(uname)" = "Darwin" ] && [ "$HOME" = "$PWD" ]; then
+  cd "$(dirname "$0")"
+fi
+
+exec "$JAVACMD" "$@"
+>>>>>>> 2.0.0

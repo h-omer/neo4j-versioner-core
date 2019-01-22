@@ -1,9 +1,17 @@
 package org.homer.versioner.core;
 
 import org.homer.versioner.core.exception.VersionerCoreException;
+import org.homer.versioner.core.output.NodeOutput;
+import org.homer.versioner.core.output.RelationshipOutput;
+import org.homer.versioner.core.procedure.RelationshipProcedure;
 import org.neo4j.graphdb.*;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -16,6 +24,7 @@ public class Utility {
     public static final String HAS_STATE_TYPE = "HAS_STATE";
     public static final String PREVIOUS_TYPE = "PREVIOUS";
     public static final String ROLLBACK_TYPE = "ROLLBACK";
+    public static final String FOR_TYPE = "FOR";
     public static final String DATE_PROP = "date";
     public static final String START_DATE_PROP = "startDate";
     public static final String END_DATE_PROP = "endDate";
@@ -25,7 +34,7 @@ public class Utility {
     public static final String DIFF_OPERATION_ADD = "ADD";
     public static final String DIFF_OPERATION_UPDATE = "UPDATE";
     public static final List<String> DIFF_OPERATIONS_SORTING = Arrays.asList(DIFF_OPERATION_REMOVE, DIFF_OPERATION_UPDATE, DIFF_OPERATION_ADD);
-
+    public static final List<String> SYSTEM_RELS = Arrays.asList(CURRENT_TYPE, HAS_STATE_TYPE, PREVIOUS_TYPE, ROLLBACK_TYPE);
 
     /**
      * Sets a {@link Map} of properties to a {@link Node}
@@ -45,7 +54,7 @@ public class Utility {
      * @param labelNames a {@link List} of label names
      * @return {@link Label[]}
      */
-    public static Label[] labels(List<String> labelNames) {
+    public static Label[] asLabels(List<String> labelNames) {
         Label[] result;
         if (Objects.isNull(labelNames)) {
             result = new Label[0];
@@ -55,11 +64,11 @@ public class Utility {
         return result;
     }
 
-    public static Label[] labels(Iterable<Label> labelsIterable) {
+    public static Label[] asLabels(Iterable<Label> labelsIterable) {
         List<String> labelNames = new ArrayList<>();
         Spliterator<Label> labelsIterator = labelsIterable.spliterator();
         StreamSupport.stream(labelsIterator, false).forEach(label -> labelNames.add(label.name()));
-        return labels(labelNames);
+        return asLabels(labelNames);
     }
 
     /**
@@ -68,12 +77,12 @@ public class Utility {
      * @param labelName a {@link String} representing the unique label
      * @return {@link Label[]}
      */
-    public static Label[] labels(String labelName) {
+    public static Label[] asLabels(String labelName) {
         return new Label[]{Label.label(labelName)};
     }
 
     /**
-     * Creates a new node copying properties and labels form a given one
+     * Creates a new node copying properties and asLabels form a given one
      *
      * @param db   a {@link GraphDatabaseService} representing the database where the node will be created
      * @param node a {@link Node} representing the node to clone
@@ -83,7 +92,7 @@ public class Utility {
         List<String> labelNames = new ArrayList<>();
         Spliterator<Label> labelsIterator = node.getLabels().spliterator();
         StreamSupport.stream(labelsIterator, false).forEach(label -> labelNames.add(label.name()));
-        return setProperties(db.createNode(labels(labelNames)), node.getAllProperties());
+        return setProperties(db.createNode(asLabels(labelNames)), node.getAllProperties());
     }
 
     /**
@@ -98,7 +107,7 @@ public class Utility {
      * @param result              a {@link Node} representing the new current State
      * @return {@link Node}
      */
-    public static Node currentStateUpdate(Node entity, long instantDate, Relationship currentRelationship, Node currentState, Long currentDate, Node result) {
+    public static Node currentStateUpdate(Node entity, LocalDateTime instantDate, Relationship currentRelationship, Node currentState, LocalDateTime currentDate, Node result) {
         // Creating PREVIOUS relationship between the current and the new State
         result.createRelationshipTo(currentState, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
 
@@ -122,7 +131,7 @@ public class Utility {
      * @param entity      a {@link Node} representing the Entity
      * @param instantDate the new current State date
      */
-    public static void addCurrentState(Node state, Node entity, long instantDate) {
+    public static void addCurrentState(Node state, Node entity, LocalDateTime instantDate) {
         entity.createRelationshipTo(state, RelationshipType.withName(CURRENT_TYPE)).setProperty(DATE_PROP, instantDate);
         entity.createRelationshipTo(state, RelationshipType.withName(HAS_STATE_TYPE)).setProperty(START_DATE_PROP, instantDate);
     }
@@ -130,8 +139,8 @@ public class Utility {
     /**
      * Checks if the given entity is related through the HAS_STATE relationship with the given node
      *
-     * @param entity    a {@link Node} representing the Entity
-     * @param state     a {@link Node} representing the State
+     * @param entity a {@link Node} representing the Entity
+     * @param state  a {@link Node} representing the State
      * @return {@link Boolean} result
      */
     public static Boolean checkRelationship(Node entity, Node state) {
@@ -148,5 +157,72 @@ public class Utility {
         });
 
         return check;
+    }
+
+    /**
+     * Converts the nodes to a stream of {@link NodeOutput}
+     *
+     * @param nodes a {@link List} of {@link Node} that will be converted to stream and mapped into {@link NodeOutput}
+     * @return {@link Stream} streamOfNodes
+     */
+    public static Stream<NodeOutput> streamOfNodes(Node... nodes) {
+        return Stream.of(nodes).map(NodeOutput::new);
+    }
+
+    /**
+     * Converts the relationships to a stream of {@link RelationshipOutput}
+     *
+     * @param relationships a {@link List} of {@link Relationship} that will be converted to stream and mapped into {@link RelationshipOutput}
+     * @return
+     */
+    public static Stream<RelationshipOutput> streamOfRelationships(Relationship... relationships) {
+        return Stream.of(relationships).map(RelationshipOutput::new);
+    }
+
+    /**
+     * Sets the date to the current dateTime if it's null
+     *
+     * @param date a {@link LocalDateTime} representing the milliseconds of the date
+     * @return {@link LocalDateTime} milliseconds of the processed date
+     */
+    public static LocalDateTime defaultToNow(LocalDateTime date) {
+        return (date == null) ? convertEpochToLocalDateTime(Calendar.getInstance().getTimeInMillis()) : date;
+    }
+
+    /**
+     * Checks that the given node is a Versioner Entity, otherwise throws an exception
+     *
+     * @param node the {@link Node} to check
+     * @throws VersionerCoreException
+     */
+    public static void isEntityOrThrowException(Node node) throws VersionerCoreException {
+
+        streamOfIterable(node.getRelationships(RelationshipType.withName("CURRENT"), Direction.OUTGOING)).findAny()
+                .map(ignored -> streamOfIterable(node.getRelationships(RelationshipType.withName("R"), Direction.INCOMING)).findAny())
+                .orElseThrow(() -> new VersionerCoreException("The given node is not a Versioner Core Entity"));
+    }
+
+    public static <T> Stream<T> streamOfIterable(Iterable<T> iterable) {
+        return StreamSupport.stream(iterable.spliterator(), false);
+    }
+
+    public static List<String> getStateLabels(String label) {
+
+        return Stream.of(Utility.STATE_LABEL, label)
+                .filter(l -> Objects.nonNull(l) && !l.isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    public static Optional<Relationship> getCurrentRelationship(Node entity) {
+        return streamOfIterable(entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING))
+                .findFirst();
+    }
+
+    public static LocalDateTime convertEpochToLocalDateTime(Long epochDateTime) {
+        return Instant.ofEpochMilli(epochDateTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
+    public static Boolean isSystemType(String type) {
+        return SYSTEM_RELS.contains(type);
     }
 }

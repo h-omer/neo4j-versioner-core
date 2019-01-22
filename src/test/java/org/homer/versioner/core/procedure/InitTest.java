@@ -1,5 +1,6 @@
 package org.homer.versioner.core.procedure;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.driver.v1.*;
@@ -7,6 +8,7 @@ import org.neo4j.driver.v1.types.Node;
 import org.neo4j.harness.junit.Neo4jRule;
 
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.homer.versioner.core.Utility.convertEpochToLocalDateTime;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -116,7 +118,7 @@ public class InitTest {
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
             // When
-            StatementResult result = session.run("CALL graph.versioner.init('Entity', {key:'value'}, {key:'value'}, 'Error', 593920000000)");
+            StatementResult result = session.run("CALL graph.versioner.init('Entity', {key:'value'}, {key:'value'}, 'Error', localdatetime('1988-10-27T02:46:40'))");
             StatementResult entityResult = session.run("MATCH (e:Entity) RETURN properties(e) as props");
             StatementResult stateResult = session.run("MATCH (s:State) RETURN s");
             Node state = stateResult.single().get("s").asNode();
@@ -133,7 +135,22 @@ public class InitTest {
             assertThat(currentResult.single().get("id").asLong(), equalTo(0L));
             assertThat(hasStatusResult.single().get("id").asLong(), equalTo(0L));
             assertThat(state.hasLabel("Error"), equalTo(true));
-            assertThat(hasStatusDateResult.single().get("date").asLong(), equalTo(593920000000L));
+            assertThat(hasStatusDateResult.single().get("date").asLocalDateTime(), equalTo(convertEpochToLocalDateTime(593920000000L)));
+        }
+    }
+
+    @Test
+    public void shouldCreateAnRNodeConnectedToTheEntity() throws Throwable {
+
+        try (Driver driver = GraphDatabase.driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
+
+            StatementResult result = session.run("CALL graph.versioner.init('Entity')");
+            StatementResult rPath = session.run("MATCH rPath = (:R)-[:FOR]->(:Entity) RETURN rPath");
+
+            Assertions.assertThat(result.single().get("node").asNode().id()).isEqualTo(0L);
+            Assertions.assertThat(rPath)
+                    .hasSize(1)
+                    .allMatch(path -> path.get("rPath").asPath().length() == 1);
         }
     }
 }

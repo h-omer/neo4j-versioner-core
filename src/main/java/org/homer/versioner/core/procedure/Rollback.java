@@ -12,6 +12,7 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Objects;
 import java.util.Optional;
@@ -19,6 +20,8 @@ import java.util.Spliterator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static org.homer.versioner.core.Utility.defaultToNow;
+import static org.homer.versioner.core.procedure.Update.connectStateToRs;
 import static org.neo4j.procedure.Mode.WRITE;
 
 /**
@@ -30,9 +33,9 @@ public class Rollback extends CoreProcedure {
     @Description("graph.versioner.rollback(entity, date) - Rollback the given Entity to its previous State")
     public Stream<NodeOutput> rollback(
             @Name("entity") Node entity,
-            @Name(value = "date", defaultValue = "0") long date) {
+            @Name(value = "date", defaultValue = "null") LocalDateTime date) {
 
-        long instantDate = (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
+        LocalDateTime instantDate = defaultToNow(date);
 
         // Getting the CURRENT rel if it exists
         Spliterator<Relationship> currentRelIterator = entity.getRelationships(RelationshipType.withName(Utility.CURRENT_TYPE), Direction.OUTGOING).spliterator();
@@ -43,7 +46,7 @@ public class Rollback extends CoreProcedure {
             Node currentState = currentRelationship.getEndNode();
 
             return getFirstAvailableRollbackNode(currentState).map(rollbackState -> {
-                Long currentDate = (Long) currentRelationship.getProperty("date");
+                LocalDateTime currentDate = (LocalDateTime) currentRelationship.getProperty("date");
 
                 // Creating the rollback state, from the previous one
                 Node result = Utility.cloneNode(db, rollbackState);
@@ -54,6 +57,8 @@ public class Rollback extends CoreProcedure {
                 // Updating CURRENT state
                 result = Utility.currentStateUpdate(entity, instantDate, currentRelationship, currentState, currentDate, result);
 
+                //Copy all the relationships
+                connectStateToRs(rollbackState, result);
 
                 log.info(Utility.LOGGER_TAG + "Rollback executed for Entity with id {}, adding a State with id {}", entity.getId(), result.getId());
                 return Optional.of(result);
@@ -66,7 +71,7 @@ public class Rollback extends CoreProcedure {
             return Optional.empty();
         });
 
-        return Stream.of(new NodeOutput(newState));
+        return newState.map(Utility::streamOfNodes).orElse(Stream.empty());
     }
 
     @Procedure(value = "graph.versioner.rollback.to", mode = WRITE)
@@ -74,9 +79,9 @@ public class Rollback extends CoreProcedure {
     public Stream<NodeOutput> rollbackTo(
             @Name("entity") Node entity,
             @Name("state") Node state,
-            @Name(value = "date", defaultValue = "0") long date) {
+            @Name(value = "date", defaultValue = "null") LocalDateTime date) {
 
-        long instantDate = (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
+        LocalDateTime instantDate = defaultToNow(date);
         Optional<Node> newState = Optional.empty();
 
         Utility.checkRelationship(entity, state);
@@ -95,7 +100,7 @@ public class Rollback extends CoreProcedure {
 
                 newState = currentRelationshipOptional.map(currentRelationship -> {
                     Node currentState = currentRelationship.getEndNode();
-                    Long currentDate = (Long) currentRelationship.getProperty("date");
+                    LocalDateTime currentDate = (LocalDateTime) currentRelationship.getProperty("date");
 
                     // Creating the rollback state, from the previous one
                     Node result = Utility.cloneNode(db, state);
@@ -105,6 +110,9 @@ public class Rollback extends CoreProcedure {
 
                     // Updating CURRENT state
                     result = Utility.currentStateUpdate(entity, instantDate, currentRelationship, currentState, currentDate, result);
+
+                    //Copy all the relationships
+                    connectStateToRs(state, result);
 
                     log.info(Utility.LOGGER_TAG + "Rollback executed for Entity with id {}, adding a State with id {}", entity.getId(), result.getId());
 
@@ -116,7 +124,7 @@ public class Rollback extends CoreProcedure {
             }
         }
 
-        return Stream.of(new NodeOutput(newState));
+        return newState.map(Utility::streamOfNodes).orElse(Stream.empty());
     }
 
     /**
@@ -139,9 +147,9 @@ public class Rollback extends CoreProcedure {
     public Stream<NodeOutput> rollbackNth(
             @Name("entity") Node entity,
             @Name("state") long nthState,
-            @Name(value = "date", defaultValue = "0") long date) {
+            @Name(value = "date", defaultValue = "null") LocalDateTime date) {
 
-        long instantDate = (date == 0) ? Calendar.getInstance().getTimeInMillis() : date;
+        LocalDateTime instantDate = defaultToNow(date);
 
         return new GetBuilder().build()
                 .flatMap(get -> get.getNthState(entity, nthState).findFirst())
