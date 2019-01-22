@@ -43,7 +43,7 @@ result.ifPresent(a -> a.init("EntityLabel", entityProps, stateProps, additionalL
 
 ## Full documentation
 
-From version 2.0.0 also you can also version relationships: too see how, see the full documentation [here](https://h-omer.github.io/neo4j-versioner-core/).
+From version 2.0.0 you can also version relationships: too see how, see the full documentation [here](https://h-omer.github.io/neo4j-versioner-core/).
 
 ## Feedback
 
