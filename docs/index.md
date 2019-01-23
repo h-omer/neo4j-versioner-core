@@ -32,7 +32,7 @@ This is how the data model looks like:
 
 ## Entity-State-R (ESR) Data Model
 
-From version 2.0.0 you can now also version relationships: When a node is created, also its own `R` node is created. So from the previous model, you can also add this new relationship:
+From version 2.0.0 you can now also version relationships: when an Entity node is created, also its own `R` node is created. So from the previous model, you can also add this new relationship:
 * `(:Entity {number: 1})<-[:FOR]-(:R)<-[:CUSTOM_RELATIONSHIP]-(:State)<-[:HAS_STATE]-(:Entity {number: 2})`, representing that an Entity is related to its own `R` node.
 
 The `R` node is the Entity's access point for its own incoming relationships; this way, we can also keep track of relationships verse.
@@ -116,8 +116,8 @@ name | parameters | return values | description
 [graph.versioner.diff](#diff) | **stateFrom**, **stateTo** | diff | Get a list of differences that must be applied to stateFrom in order to convert it into stateTo.
 [graph.versioner.diff.from.previous](#diff-from-previous) | **state** | diff | Get a list of differences that must be applied to the previous status of the given one in order to become the given state.
 [graph.versioner.diff.from.current](#diff-from-current) | **state** | diff | Get a list of differences that must be applied to the given state in order to become the current entity state.
-[graph.versioner.relationship.create](#relationship-create) | **entitySource**, **entityDestination**, **relationshipType**, *{key:value,...}*, *date* | **relationship** | Creates a new state for the source entity connected to the R node of the destination with a relationship of the given type.
-[graph.versioner.relationship.delete](#relationship-delete) | **entitySource**, **entityDestination**, **relationshipType**, *date* | **result** | Creates a new state for the source entity without a custom relationship of the given type.
+[graph.versioner.relationship.create](#relationship-create) | **entitySource**, **entityDestination**, relationshipType, *{key:value,...}*, *date* | **relationship** | Creates a new state for the source entity connected to the R node of the destination with a relationship of the given type.
+[graph.versioner.relationship.delete](#relationship-delete) | **entitySource**, **entityDestination**, relationshipType, *date* | **result** | Creates a new state for the source entity without a custom relationship of the given type.
 
 ## init
 
