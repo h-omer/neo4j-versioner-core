@@ -113,9 +113,9 @@ name | parameters | return values | description
 [graph.versioner.rollback](#rollback) | **entity**, *date* | **node** | Rollback the current State to the first available one.
 [graph.versioner.rollback.to](#rollback-to) | **entity**, **state**, *date* | **node** | Rollback the current State to the given one.
 [graph.versioner.rollback.nth](#rollback-nth) | **entity**, nth, *date* | **node** | Rollback the given Entity to the nth previous State.
-[graph.versioner.diff](#diff) | **stateFrom**, **stateTo** | diff | Get a list of differences that must be applied to stateFrom in order to convert it into stateTo.
-[graph.versioner.diff.from.previous](#diff-from-previous) | **state** | diff | Get a list of differences that must be applied to the previous status of the given one in order to become the given state.
-[graph.versioner.diff.from.current](#diff-from-current) | **state** | diff | Get a list of differences that must be applied to the given state in order to become the current entity state.
+[graph.versioner.diff](#diff) | **stateFrom**, **stateTo** | operation, label, oldValue, newValue | Get a list of differences that must be applied to stateFrom in order to convert it into stateTo.
+[graph.versioner.diff.from.previous](#diff-from-previous) | **state** | operation, label, oldValue, newValue | Get a list of differences that must be applied to the previous status of the given one in order to become the given state.
+[graph.versioner.diff.from.current](#diff-from-current) | **state** | operation, label, oldValue, newValue | Get a list of differences that must be applied to the given state in order to become the current entity state.
 [graph.versioner.relationship.create](#relationship-create) | **entitySource**, **entityDestination**, relationshipType, *{key:value,...}*, *date* | **relationship** | Creates a new state for the source entity connected to the R node of the destination with a relationship of the given type.
 [graph.versioner.relationship.delete](#relationship-delete) | **entitySource**, **entityDestination**, relationshipType, *date* | **result** | Creates a new state for the source entity without a custom relationship of the given type.
 
@@ -564,12 +564,15 @@ name | necessity | detail
 
 name | type 
 ---- | ----
-diff | diff
+operation | string
+label | string
+oldValue | object
+newValue | object
 
 ### Example call
 
 ```cypher
-MATCH (stateFrom:State {code:2}), (stateTo:State {code:3}) WITH stateFrom, stateTo CALL graph.versioner.diff(stateFrom, stateTo) YIELD diff RETURN diff
+MATCH (stateFrom:State {code:2}), (stateTo:State {code:3}) WITH stateFrom, stateTo CALL graph.versioner.diff(stateFrom, stateTo) YIELD operation, label, oldValue, newValue RETURN operation, label, oldValue, newValue
 ```
 
 ## diff from previous
@@ -594,12 +597,15 @@ name | necessity | detail
 
 name | type 
 ---- | ----
-diff | diff
+operation | string
+label | string
+oldValue | object
+newValue | object
 
 ### Example call
 
 ```cypher
-MATCH (s:State {code:2}) WITH s CALL graph.versioner.diff.from.previous(s) YIELD diff RETURN diff
+MATCH (s:State {code:2}) WITH s CALL graph.versioner.diff.from.previous(s) YIELD operation, label, oldValue, newValue RETURN operation, label, oldValue, newValue
 ```
 
 ## diff from current
@@ -624,12 +630,15 @@ name | necessity | detail
 
 name | type 
 ---- | ----
-diff | diff
+operation | string
+label | string
+oldValue | object
+newValue | object
 
 ### Example call
 
 ```cypher
-MATCH (s:State {code:2}) WITH s CALL graph.versioner.diff.from.current(s) YIELD diff RETURN diff
+MATCH (s:State {code:2}) WITH s CALL graph.versioner.diff.from.current(s) YIELD operation, label, oldValue, newValue RETURN operation, label, oldValue, newValue
 ```
 
 ## relationship create
