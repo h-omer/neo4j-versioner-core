@@ -70,8 +70,13 @@ public class RelationshipProcedure extends CoreProcedure {
         Update updateProcedure = new UpdateBuilder().withLog(log).withDb(db).build().orElseThrow(() -> new VersionerCoreException("Unable to initialize update procedure"));
 
         if (sourceCurrentState.isPresent() && destinationRNode.isPresent()) {
+            final long destId = destinationRNode.get().getId();
             updateProcedure.update(entitySource, sourceCurrentState.get().getAllProperties(), "", null);
-            getCurrentRelationship(entitySource).ifPresent(rel -> rel.getEndNode().getRelationships(RelationshipType.withName(type), Direction.OUTGOING).forEach(Relationship::delete));
+            getCurrentRelationship(entitySource).ifPresent(rel -> rel.getEndNode().getRelationships(RelationshipType.withName(type), Direction.OUTGOING).forEach(rel2 -> {
+                if (rel2.getEndNode().getId() == destId) {
+                    rel2.delete();
+                }
+            }));
             return Stream.of(new BooleanOutput(Boolean.TRUE));
         } else {
             return Stream.of(new BooleanOutput(Boolean.FALSE));

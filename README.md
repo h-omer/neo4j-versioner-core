@@ -52,5 +52,3 @@ We would appreciate your feedback about our Versioner Core, how to improve and f
 ## Buy us a coffee :coffee:
 
 This project is developed during our free time, and our free time is mostly during evening/night! So coffee is really helpful during our sessions :sweat_smile:. If you want to help us with that, you can buy us some :coffee: thanks to [PayPal](https://www.paypal.me/mfalcier/2)!
-
-test
