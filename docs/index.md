@@ -116,6 +116,7 @@ name | parameters | return values | description
 [graph.versioner.diff](#diff) | **stateFrom**, **stateTo** | operation, label, oldValue, newValue | Get a list of differences that must be applied to stateFrom in order to convert it into stateTo.
 [graph.versioner.diff.from.previous](#diff-from-previous) | **state** | operation, label, oldValue, newValue | Get a list of differences that must be applied to the previous status of the given one in order to become the given state.
 [graph.versioner.diff.from.current](#diff-from-current) | **state** | operation, label, oldValue, newValue | Get a list of differences that must be applied to the given state in order to become the current entity state.
+[graph.versioner.relationships.create](#relationships-create) | **entitySource**, **List<entityDestination>**, relationshipType, *{key:value,...}*, *date* | **relationship** | Creates a new state for the source entity connected to the R nodes of the destinations with a relationship of the given type.
 [graph.versioner.relationship.create](#relationship-create) | **entitySource**, **entityDestination**, relationshipType, *{key:value,...}*, *date* | **relationship** | Creates a new state for the source entity connected to the R node of the destination with a relationship of the given type.
 [graph.versioner.relationship.delete](#relationship-delete) | **entitySource**, **entityDestination**, relationshipType, *date* | **result** | Creates a new state for the source entity without a custom relationship of the given type.
 

@@ -17,6 +17,7 @@ import org.neo4j.procedure.Procedure;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -27,6 +28,29 @@ import static org.homer.versioner.core.Utility.*;
  * RelationshipProcedure class, it contains all the Procedures needed to create versioned relationships between Entities
  */
 public class RelationshipProcedure extends CoreProcedure {
+
+    @Procedure(value = "graph.versioner.relationships.create", mode = Mode.WRITE)
+    @Description("graph.versioner.relationships.create(entityA, entitiesB, type, relProps, date) - Create multiple relationships from entitySource to each of the entityDestinations with the given type and/or properties for the specified date.")
+    public Stream<RelationshipOutput> relationshipsCreate(
+            @Name("entitySource") Node entitySource,
+            @Name("entityDestinations") List<Node> entityDestinations,
+            @Name(value = "type") String type,
+            @Name(value = "relProps", defaultValue = "{}") Map<String, Object> relProps,
+            @Name(value = "date", defaultValue = "null") LocalDateTime date) {
+
+        Optional<Node> sourceCurrentState = createNewSourceState(entitySource, defaultToNow(date));
+        isEntityOrThrowException(entitySource);
+        return sourceCurrentState.map(node -> entityDestinations.stream().map((Node entityDestination) -> {
+            isEntityOrThrowException(entityDestination);
+            Optional<Node> destinationRNode = getRNode(entityDestination);
+            if (destinationRNode.isPresent()) {
+                return streamOfRelationships(createRelationship(node, destinationRNode.get(), type, relProps));
+            } else {
+                final Stream<RelationshipOutput> empty = Stream.empty();
+                return empty;
+            }
+        }).reduce(Stream::concat).orElseGet(Stream::empty)).orElseGet(Stream::empty);
+    }
 
     @Procedure(value = "graph.versioner.relationship.create", mode = Mode.WRITE)
     @Description("graph.versioner.relationship.create(entityA, entityB, type, relProps, date) - Create a relationship from entitySource to entityDestination with the given type and/or properties for the specified date.")
@@ -95,7 +119,7 @@ public class RelationshipProcedure extends CoreProcedure {
                 .map(Relationship::getStartNode);
     }
 
-    private Optional<Node> createNewSourceState(Node entitySource, LocalDateTime date) throws VersionerCoreException {
+    private Optional<Node> createNewSourceState(Node entitySource, LocalDateTime date) {
 
         Update updateProcedure = new UpdateBuilder().withLog(log).withDb(db).build().orElseThrow(() -> new VersionerCoreException("Unable to initialize update procedure"));
         return updateProcedure.patch(entitySource, Collections.emptyMap(), StringUtils.EMPTY, date)

@@ -117,7 +117,7 @@ public class Update extends CoreProcedure {
                 .orElseThrow(() -> new VersionerCoreException("Can't find any current State node for the given entity."));
 
         //Copy all the relationships
-        if (useCurrentRel) {
+        if (Boolean.TRUE.equals(useCurrentRel)) {
             currentRelationshipOpt.ifPresent(rel -> connectStateToRs(rel.getEndNode()   , newState));
         } else {
             connectStateToRs(state, newState);

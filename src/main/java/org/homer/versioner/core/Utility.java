@@ -143,10 +143,10 @@ public class Utility {
      * @param state  a {@link Node} representing the State
      * @return {@link Boolean} result
      */
-    public static Boolean checkRelationship(Node entity, Node state) {
+    public static void checkRelationship(Node entity, Node state) throws VersionerCoreException{
         Spliterator<Relationship> stateRelIterator = state.getRelationships(RelationshipType.withName(Utility.HAS_STATE_TYPE), Direction.INCOMING).spliterator();
 
-        Boolean check = StreamSupport.stream(stateRelIterator, false).map(hasStateRel -> {
+        StreamSupport.stream(stateRelIterator, false).map(hasStateRel -> {
             Node maybeEntity = hasStateRel.getStartNode();
             if (maybeEntity.getId() != entity.getId()) {
                 throw new VersionerCoreException("Can't patch the given entity, because the given State is owned by another entity.");
@@ -156,7 +156,6 @@ public class Utility {
             throw new VersionerCoreException("Can't find any entity node relate to the given State.");
         });
 
-        return check;
     }
 
     /**
@@ -195,9 +194,9 @@ public class Utility {
      * @param node the {@link Node} to check
      * @throws VersionerCoreException
      */
-    public static void isEntityOrThrowException(Node node) throws VersionerCoreException {
+    public static void isEntityOrThrowException(Node node) {
 
-        streamOfIterable(node.getRelationships(RelationshipType.withName("CURRENT"), Direction.OUTGOING)).findAny()
+        streamOfIterable(node.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING)).findAny()
                 .map(ignored -> streamOfIterable(node.getRelationships(RelationshipType.withName("R"), Direction.INCOMING)).findAny())
                 .orElseThrow(() -> new VersionerCoreException("The given node is not a Versioner Core Entity"));
     }
@@ -222,7 +221,7 @@ public class Utility {
         return Instant.ofEpochMilli(epochDateTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
-    public static Boolean isSystemType(String type) {
+    public static boolean isSystemType(String type) {
         return SYSTEM_RELS.contains(type);
     }
 }
