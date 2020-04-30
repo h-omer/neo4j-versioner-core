@@ -104,18 +104,19 @@ public class RelationshipProcedureTest extends GenericProcedureTest {
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
 
             // Given
-            Node entityA = initEntity(session);
-            Node entityB = initEntity(session);
-            String testType = "testType";
-            Long date = 593920000000L;
+            final Node entityA = initEntity(session);
+            final Node entityB = initEntity(session);
+            final String testType = "testType";
+            final Long date = 593920000000L;
+            final String dateString = convertEpochToLocalDateTime(date).toString();
 
             // When
-            String query = "MATCH (a:Entity), (b:Entity) WHERE id(a) = %d AND id(b) = %d WITH a, b CALL graph.versioner.relationship.create(a, b, '%s', {}, localdatetime('1988-10-27T02:46:40')) YIELD relationship RETURN relationship";
-            session.run(String.format(query, entityA.id(), entityB.id(), testType));
+            final String query = "MATCH (a:Entity), (b:Entity) WHERE id(a) = %d AND id(b) = %d WITH a, b CALL graph.versioner.relationship.create(a, b, '%s', {}, localdatetime('%s')) YIELD relationship RETURN relationship";
+            session.run(String.format(query, entityA.id(), entityB.id(), testType, dateString));
 
             // Then
-            String querySourceCurrent = "MATCH (e:Entity)-[r:CURRENT]->(:State)-[:%s]->(:R) WHERE id(e) = %d RETURN r";
-            Relationship currentRelationship = session.run(String.format(querySourceCurrent, testType, entityA.id())).single().get("r").asRelationship();
+            final String querySourceCurrent = "MATCH (e:Entity)-[r:CURRENT]->(:State)-[:%s]->(:R) WHERE id(e) = %d RETURN r";
+            final Relationship currentRelationship = session.run(String.format(querySourceCurrent, testType, entityA.id())).single().get("r").asRelationship();
 
             assertThat(currentRelationship)
                     .matches(rel -> rel.containsKey("date") && rel.get("date").asLocalDateTime().equals(convertEpochToLocalDateTime(date)));
