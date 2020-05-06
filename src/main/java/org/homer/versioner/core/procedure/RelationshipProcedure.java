@@ -34,22 +34,24 @@ public class RelationshipProcedure extends CoreProcedure {
     public Stream<RelationshipOutput> relationshipsCreate(
             @Name("entitySource") Node entitySource,
             @Name("entityDestinations") List<Node> entityDestinations,
-            @Name(value = "type") String type,
-            @Name(value = "relProps", defaultValue = "{}") Map<String, Object> relProps,
+            @Name(value = "relProps", defaultValue = "[{}]") List<Map<String, Object>> relProps,
             @Name(value = "date", defaultValue = "null") LocalDateTime date) {
 
         Optional<Node> sourceCurrentState = createNewSourceState(entitySource, defaultToNow(date));
         isEntityOrThrowException(entitySource);
-        return sourceCurrentState.map(node -> entityDestinations.stream().map((Node entityDestination) -> {
-            isEntityOrThrowException(entityDestination);
-            Optional<Node> destinationRNode = getRNode(entityDestination);
-            if (destinationRNode.isPresent()) {
-                return streamOfRelationships(createRelationship(node, destinationRNode.get(), type, relProps));
-            } else {
-                final Stream<RelationshipOutput> empty = Stream.empty();
-                return empty;
-            }
-        }).reduce(Stream::concat).orElseGet(Stream::empty)).orElseGet(Stream::empty);
+
+        return entityDestinations.size() == relProps.size() ? sourceCurrentState.map(node -> zip(entityDestinations, relProps).stream().map((item) -> {
+            final Node destinationNode = item.getLeft();
+            isEntityOrThrowException(destinationNode);
+            Optional<Node> destinationRNode = getRNode(destinationNode);
+            Map<String, Object> props = item.getRight();
+
+            if (destinationRNode.isPresent())
+                return streamOfRelationships(createRelationship(node, destinationRNode.get(), props.get("label") instanceof String ? ((String) props.get("label")) : "TYPE_UNDEFINED", props));
+
+            return Stream.<RelationshipOutput>empty();
+
+        }).reduce(Stream::concat).orElseGet(Stream::empty)).orElseGet(Stream::empty) : Stream.empty();
     }
 
     @Procedure(value = "graph.versioner.relationship.create", mode = Mode.WRITE)

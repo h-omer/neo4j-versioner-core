@@ -1,9 +1,9 @@
 package org.homer.versioner.core;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.homer.versioner.core.exception.VersionerCoreException;
 import org.homer.versioner.core.output.NodeOutput;
 import org.homer.versioner.core.output.RelationshipOutput;
-import org.homer.versioner.core.procedure.RelationshipProcedure;
 import org.neo4j.graphdb.*;
 
 import java.time.Instant;
@@ -219,6 +219,19 @@ public class Utility {
 
     public static LocalDateTime convertEpochToLocalDateTime(Long epochDateTime) {
         return Instant.ofEpochMilli(epochDateTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
+    public static <A, B> List<org.apache.commons.lang3.tuple.Pair<A, B>> zip(List<A> listA, List<B> listB) {
+        if (listA.size() != listB.size()) {
+            throw new IllegalArgumentException("Lists must have same size");
+        }
+
+        List<Pair<A, B>> pairList = new LinkedList<>();
+
+        for (int index = 0; index < listA.size(); index++) {
+            pairList.add(Pair.of(listA.get(index), listB.get(index)));
+        }
+        return pairList;
     }
 
     public static boolean isSystemType(String type) {
