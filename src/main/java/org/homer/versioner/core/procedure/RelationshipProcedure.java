@@ -30,7 +30,7 @@ import static org.homer.versioner.core.Utility.*;
 public class RelationshipProcedure extends CoreProcedure {
 
     @Procedure(value = "graph.versioner.relationships.create", mode = Mode.WRITE)
-    @Description("graph.versioner.relationships.create(entityA, entitiesB, type, relProps, date) - Create multiple relationships from entitySource to each of the entityDestinations with the given type and/or properties for the specified date.")
+    @Description("graph.versioner.relationships.create(entityA, entitiesB, type, relProps, date) - Create multiple relationships from entitySource to each of the entityDestinations with the given type and/or properties for the specified date.  The relationship 'label' along with properties for each relationship can be passed in via 'relProps' a default label ('LABEL_UNDEFINED') is assigned to relationships that are not supplied with a 'label' attribute in the props")
     public Stream<RelationshipOutput> relationshipsCreate(
             @Name("entitySource") Node entitySource,
             @Name("entityDestinations") List<Node> entityDestinations,
@@ -47,7 +47,7 @@ public class RelationshipProcedure extends CoreProcedure {
             Map<String, Object> props = item.getRight();
 
             if (destinationRNode.isPresent())
-                return streamOfRelationships(createRelationship(node, destinationRNode.get(), props.get("label") instanceof String ? ((String) props.get("label")) : "TYPE_UNDEFINED", props));
+                return streamOfRelationships(createRelationship(node, destinationRNode.get(), props.get("label") instanceof String ? ((String) props.get("label")) : "LABEL_UNDEFINED", props));
 
             return Stream.<RelationshipOutput>empty();
 
