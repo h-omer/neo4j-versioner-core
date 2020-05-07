@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.homer.versioner.core.Utility.*;
@@ -30,7 +31,7 @@ import static org.homer.versioner.core.Utility.*;
 public class RelationshipProcedure extends CoreProcedure {
 
     @Procedure(value = "graph.versioner.relationships.create", mode = Mode.WRITE)
-    @Description("graph.versioner.relationships.create(entityA, entitiesB, type, relProps, date) - Create multiple relationships from entitySource to each of the entityDestinations with the given type and/or properties for the specified date.  The relationship 'label' along with properties for each relationship can be passed in via 'relProps' a default label ('LABEL_UNDEFINED') is assigned to relationships that are not supplied with a 'label' attribute in the props")
+    @Description("graph.versioner.relationships.create(entityA, entitiesB, type, relProps, date) - Create multiple relationships from entitySource to each of the entityDestinations with the given type and/or properties for the specified date.  The relationship 'versionerLabel' along with properties for each relationship can be passed in via 'relProps' a default label ('LABEL_UNDEFINED') is assigned to relationships that are not supplied with a 'versionerLabel' attribute in the props")
     public Stream<RelationshipOutput> relationshipsCreate(
             @Name("entitySource") Node entitySource,
             @Name("entityDestinations") List<Node> entityDestinations,
@@ -46,8 +47,13 @@ public class RelationshipProcedure extends CoreProcedure {
             Optional<Node> destinationRNode = getRNode(destinationNode);
             Map<String, Object> props = item.getRight();
 
+            // versionerLabel prop is a 'magic' prop
+            final String labelProp = "versionerLabel";
+            Map<String, Object> filteredProps = props.entrySet().stream().filter(map -> !map.getKey().toString().equals(labelProp))
+                    .collect(Collectors.toMap(map -> map.getKey(), map -> map.getValue()));
+
             if (destinationRNode.isPresent())
-                return streamOfRelationships(createRelationship(node, destinationRNode.get(), props.get("label") instanceof String ? ((String) props.get("label")) : "LABEL_UNDEFINED", props));
+                return streamOfRelationships(createRelationship(node, destinationRNode.get(), props.get(labelProp) instanceof String ? ((String) props.get(labelProp)) : "LABEL_UNDEFINED", filteredProps));
 
             return Stream.<RelationshipOutput>empty();
 
