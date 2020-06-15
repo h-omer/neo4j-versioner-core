@@ -47,7 +47,7 @@ public class Update extends CoreProcedure {
             LocalDateTime currentDate = (LocalDateTime) currentRel.getProperty("date");
 
             // Creating PREVIOUS relationship between the current and the new State
-            result.createRelationshipTo(currentState, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
+            currentState.createRelationshipTo(result, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
 
             // Updating the HAS_STATE rel for the current node, adding endDate
             currentState.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.INCOMING)

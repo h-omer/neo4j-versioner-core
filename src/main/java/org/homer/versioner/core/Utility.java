@@ -143,7 +143,7 @@ public class Utility {
      * @param state  a {@link Node} representing the State
      * @return {@link Boolean} result
      */
-    public static void checkRelationship(Node entity, Node state) throws VersionerCoreException{
+    public static void checkRelationship(Node entity, Node state) throws VersionerCoreException {
         Spliterator<Relationship> stateRelIterator = state.getRelationships(RelationshipType.withName(Utility.HAS_STATE_TYPE), Direction.INCOMING).spliterator();
 
         StreamSupport.stream(stateRelIterator, false).map(hasStateRel -> {
@@ -222,16 +222,16 @@ public class Utility {
     }
 
     public static <A, B> List<org.apache.commons.lang3.tuple.Pair<A, B>> zip(List<A> listA, List<B> listB) {
-        if (listA.size() != listB.size()) {
-            throw new IllegalArgumentException("Lists must have same size");
-        }
-
         List<Pair<A, B>> pairList = new LinkedList<>();
-
-        for (int index = 0; index < listA.size(); index++) {
-            pairList.add(Pair.of(listA.get(index), listB.get(index)));
+        if (listA.size() != listB.size()) {
+            System.out.println("Lists must have same size" + listA);
+        } else {
+            for (int index = 0; index < listA.size(); index++) {
+                pairList.add(Pair.of(listA.get(index), listB.get(index)));
+            }
         }
         return pairList;
+
     }
 
     public static boolean isSystemType(String type) {

@@ -1,5 +1,6 @@
 package org.homer.versioner.core.procedure;
 
+import org.hamcrest.CoreMatchers;
 import org.homer.versioner.core.Utility;
 import org.junit.Rule;
 import org.junit.Test;
@@ -9,6 +10,7 @@ import org.neo4j.driver.v1.types.Path;
 import org.neo4j.driver.v1.types.Relationship;
 import org.neo4j.harness.junit.Neo4jRule;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -20,12 +22,12 @@ import static org.junit.Assert.fail;
 /**
  * GetTest class, it contains all the method used to test Get class methods
  */
-public class GetTest {
+public class GetTest extends GenericProcedureTest{
     @Rule
     public Neo4jRule neo4j = new Neo4jRule()
 
             // This is the function we want to test
-            .withProcedure(Get.class);
+            .withProcedure(Get.class).withProcedure(Update.class);
 
     /*------------------------------*/
     /*       get.current.path       */
@@ -115,6 +117,32 @@ public class GetTest {
             assertThat(current.contains(stateNew), equalTo(true));
             assertThat(rels.containsKey(Utility.PREVIOUS_TYPE), equalTo(true));
             assertThat(current.contains(stateOld), equalTo(true));
+        }
+    }
+
+    @Test
+    public void shouldGetAllStateNodesByGivenEntityMultipleStates() {
+        // This is in a try-block, to make sure we close the driver after the test
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
+            // Given
+            session.run("CREATE (e:Entity {key:'immutableValue'})-[:CURRENT {date:localdatetime('1988-10-27T00:00:00')}]->(s:State {key:'initialValue'})");
+            session.run("MATCH (e:Entity)-[:CURRENT]->(s:State) CREATE (e)-[:HAS_STATE {startDate:localdatetime('1988-10-27T00:00:00')}]->(s)");
+
+            // When
+            session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, {key:'newValue'}, 'Error') YIELD node RETURN node");
+            session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, {key:'newerValue'}, 'Error') YIELD node RETURN node");
+            session.run("MATCH (e:Entity) WITH e CALL graph.versioner.update(e, {key:'newestValue'}, 'Error') YIELD node RETURN node");
+            StatementResult countStateResult = session.run("MATCH (s:State) RETURN count(*) as ss");
+            StatementResult allResult = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.get.all(e) YIELD path RETURN nodes(path) as ns");
+            StatementResult allResult2 = session.run("MATCH (e:Entity) WITH e CALL graph.versioner.get.all(e) YIELD path RETURN path");
+            // Then
+            final Value ss = countStateResult.single().get("ss");
+            assertThat(ss.asInt(), CoreMatchers.equalTo(4));
+            final Value ns = allResult.single().get("ns");
+            assertThat(ns.asList().size(), CoreMatchers.equalTo(5));
+            final Iterable<Node> path = allResult2.single().get("path").asPath().nodes();
+            assertThat(((Collection<Node>)path).size(), CoreMatchers.equalTo(5));
         }
     }
 

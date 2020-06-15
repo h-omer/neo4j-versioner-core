@@ -3,6 +3,7 @@ package org.homer.versioner.core.procedure;
 import org.homer.versioner.core.Utility;
 import org.homer.versioner.core.output.NodeOutput;
 import org.homer.versioner.core.output.PathOutput;
+import org.neo4j.cypher.internal.compiler.v2_3.commands.expressions.PathValueBuilder;
 import org.neo4j.graphalgo.impl.util.PathImpl;
 import org.neo4j.graphdb.*;
 import org.neo4j.procedure.Description;
@@ -44,22 +45,23 @@ public class Get {
                 .map(Relationship::getEndNode).map(NodeOutput::new).orElse(null));
     }
 
+
+    //fix for error Node[xyz] not connected to this relationship[xyz]
     @Procedure(value = "graph.versioner.get.all", mode = DEFAULT)
     @Description("graph.versioner.get.all(entity) - Get all the State nodes for the given Entity.")
     public Stream<PathOutput> getAllState(
             @Name("entity") Node entity) {
 
-        PathImpl.Builder builder = new PathImpl.Builder(entity)
-                .push(entity.getSingleRelationship(RelationshipType.withName(Utility.CURRENT_TYPE), Direction.OUTGOING));
-        builder = StreamSupport.stream(entity.getRelationships(RelationshipType.withName(Utility.HAS_STATE_TYPE), Direction.OUTGOING).spliterator(), false)
-                //.sorted((a, b) -> -1 * Long.compare((long)a.getProperty(START_DATE_PROP), (long)b.getProperty(START_DATE_PROP)))
-                .reduce(
-                        builder,
-                        (build, rel) -> Optional.ofNullable(rel.getEndNode().getSingleRelationship(RelationshipType.withName(Utility.PREVIOUS_TYPE), Direction.OUTGOING))
-                                            .map(build::push)
-                                            .orElse(build),
-                        (a, b) -> a);
-        return Stream.of(new PathOutput(builder.build()));
+        PathValueBuilder builder = new PathValueBuilder();
+        builder.addNode(entity);
+        builder.addOutgoingRelationship(entity.getSingleRelationship(RelationshipType.withName(Utility.CURRENT_TYPE), Direction.OUTGOING));
+        StreamSupport.stream(entity.getRelationships(RelationshipType.withName(Utility.HAS_STATE_TYPE), Direction.OUTGOING).spliterator(), false)
+                .forEach(rel ->
+                        Optional.ofNullable(rel.getEndNode().getSingleRelationship(RelationshipType.withName(Utility.PREVIOUS_TYPE), Direction.OUTGOING))
+                                .map(builder::addOutgoingRelationship)
+                );
+
+        return Stream.of(new PathOutput(builder.result()));
     }
 
     @Procedure(value = "graph.versioner.get.by.label", mode = DEFAULT)
@@ -86,31 +88,31 @@ public class Get {
                 .map(NodeOutput::new);
     }
 
-	@Procedure(value = "graph.versioner.get.nth.state", mode = DEFAULT)
-	@Description("graph.versioner.get.nth.state(entity, nth) - Get the nth State node for the given Entity.")
-	public Stream<NodeOutput> getNthState(
-			@Name("entity") Node entity,
-			@Name("nth") long nth) {
+    @Procedure(value = "graph.versioner.get.nth.state", mode = DEFAULT)
+    @Description("graph.versioner.get.nth.state(entity, nth) - Get the nth State node for the given Entity.")
+    public Stream<NodeOutput> getNthState(
+            @Name("entity") Node entity,
+            @Name("nth") long nth) {
 
-    	return getCurrentState(entity)
-				.findFirst()
-				.flatMap(currentState -> getNthStateFrom(currentState.node, nth))
-				.map(Utility::streamOfNodes)
-				.orElse(Stream.empty());
-	}
+        return getCurrentState(entity)
+                .findFirst()
+                .flatMap(currentState -> getNthStateFrom(currentState.node, nth))
+                .map(Utility::streamOfNodes)
+                .orElse(Stream.empty());
+    }
 
-	private Optional<Node> getNthStateFrom(Node state, long nth) {
+    private Optional<Node> getNthStateFrom(Node state, long nth) {
 
-		return Stream.iterate(Optional.of(state), s -> s.flatMap(this::jumpToPreviousState))
-				.limit(nth + 1)
-				.reduce((a, b) -> b) //get only the last value (apply jumpToPreviousState n times
-				.orElse(Optional.empty());
-	}
+        return Stream.iterate(Optional.of(state), s -> s.flatMap(this::jumpToPreviousState))
+                .limit(nth + 1)
+                .reduce((a, b) -> b) //get only the last value (apply jumpToPreviousState n times
+                .orElse(Optional.empty());
+    }
 
-	private Optional<Node> jumpToPreviousState(Node state) {
+    private Optional<Node> jumpToPreviousState(Node state) {
 
-    	return StreamSupport.stream(state.getRelationships(RelationshipType.withName(Utility.PREVIOUS_TYPE), Direction.OUTGOING).spliterator(), false)
-				.findFirst()
-				.map(Relationship::getEndNode);
-	}
+        return StreamSupport.stream(state.getRelationships(RelationshipType.withName(Utility.PREVIOUS_TYPE), Direction.OUTGOING).spliterator(), false)
+                .findFirst()
+                .map(Relationship::getEndNode);
+    }
 }

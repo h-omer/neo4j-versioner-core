@@ -31,7 +31,7 @@ import static org.homer.versioner.core.Utility.*;
 public class RelationshipProcedure extends CoreProcedure {
 
     @Procedure(value = "graph.versioner.relationships.create", mode = Mode.WRITE)
-    @Description("graph.versioner.relationships.create(entityA, entitiesB, type, relProps, date) - Create multiple relationships from entitySource to each of the entityDestinations with the given type and/or properties for the specified date.  The relationship 'versionerLabel' along with properties for each relationship can be passed in via 'relProps' a default label ('LABEL_UNDEFINED') is assigned to relationships that are not supplied with a 'versionerLabel' attribute in the props")
+    @Description("graph.versioner.relationships.create(entityA, entitiesB, relProps, date) - Create multiple relationships from entitySource to each of the entityDestinations with the given type and/or properties for the specified date.  The relationship 'versionerLabel' along with properties for each relationship can be passed in via 'relProps' a default label ('LABEL_UNDEFINED') is assigned to relationships that are not supplied with a 'versionerLabel' attribute in the props")
     public Stream<RelationshipOutput> relationshipsCreate(
             @Name("entitySource") Node entitySource,
             @Name("entityDestinations") List<Node> entityDestinations,
