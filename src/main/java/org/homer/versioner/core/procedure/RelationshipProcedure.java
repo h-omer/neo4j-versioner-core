@@ -16,10 +16,7 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,7 +26,6 @@ import static org.homer.versioner.core.Utility.*;
  * RelationshipProcedure class, it contains all the Procedures needed to create versioned relationships between Entities
  */
 public class RelationshipProcedure extends CoreProcedure {
-
     @Procedure(value = "graph.versioner.relationships.create", mode = Mode.WRITE)
     @Description("graph.versioner.relationships.create(entityA, entitiesB, relProps, date) - Create multiple relationships from entitySource to each of the entityDestinations with the given type and/or properties for the specified date.  The relationship 'versionerLabel' along with properties for each relationship can be passed in via 'relProps' a default label ('LABEL_UNDEFINED') is assigned to relationships that are not supplied with a 'versionerLabel' attribute in the props")
     public Stream<RelationshipOutput> relationshipsCreate(
@@ -40,14 +36,14 @@ public class RelationshipProcedure extends CoreProcedure {
 
         Optional<Node> sourceCurrentState = createNewSourceState(entitySource, defaultToNow(date));
         isEntityOrThrowException(entitySource);
+        entityDestinations.sort(Comparator.comparing(o -> o.getProperty("id").toString()));
+
 
         return entityDestinations.size() == relProps.size() ? sourceCurrentState.map(node -> zip(entityDestinations, relProps).stream().map((item) -> {
             final Node destinationNode = item.getLeft();
             isEntityOrThrowException(destinationNode);
             Optional<Node> destinationRNode = getRNode(destinationNode);
             Map<String, Object> props = item.getRight();
-
-            // versionerLabel prop is a 'magic' prop
             final String labelProp = "versionerLabel";
             Map<String, Object> filteredProps = props.entrySet().stream().filter(map -> !map.getKey().toString().equals(labelProp))
                     .collect(Collectors.toMap(map -> map.getKey(), map -> map.getValue()));
