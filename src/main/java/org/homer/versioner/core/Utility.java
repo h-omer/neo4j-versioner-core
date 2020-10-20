@@ -217,6 +217,10 @@ public class Utility {
                 .findFirst();
     }
 
+    public static Optional<Node> getCurrentState(Node entity) {
+        return streamOfIterable(entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING)).map(relationship -> relationship.getEndNode()).findFirst();
+    }
+
     public static LocalDateTime convertEpochToLocalDateTime(Long epochDateTime) {
         return Instant.ofEpochMilli(epochDateTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
     }

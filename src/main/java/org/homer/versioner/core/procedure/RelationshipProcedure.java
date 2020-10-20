@@ -123,7 +123,7 @@ public class RelationshipProcedure extends CoreProcedure {
             throw new VersionerCoreException("It's not possible to delete a System Relationship like " + type + ".");
         }
 
-        Optional<Node> sourceCurrentState = createNewSourceState(entitySource, defaultToNow(date));
+        Optional<Node> sourceCurrentState = getCurrentState(entitySource);
         Optional<Node> destinationRNode = getRNode(entityDestination);
 
         Update updateProcedure = new UpdateBuilder().withLog(log).withDb(db).build().orElseThrow(() -> new VersionerCoreException("Unable to initialize update procedure"));
