@@ -39,6 +39,11 @@ public class RelationshipProcedure extends CoreProcedure {
         entityDestinations.sort(Comparator.comparing(o -> o.getProperty("id").toString()));
 
 
+        Stream<RelationshipOutput> relationshipOutputStream = getRelationshipOutputStream(entityDestinations, relProps, sourceCurrentState);
+        return relationshipOutputStream;
+    }
+
+    private Stream<RelationshipOutput> getRelationshipOutputStream(List<Node> entityDestinations, List<Map<String, Object>> relProps, Optional<Node> sourceCurrentState) {
         return entityDestinations.size() == relProps.size() ? sourceCurrentState.map(node -> zip(entityDestinations, relProps).stream().map((item) -> {
             final Node destinationNode = item.getLeft();
             isEntityOrThrowException(destinationNode);
@@ -48,8 +53,10 @@ public class RelationshipProcedure extends CoreProcedure {
             Map<String, Object> filteredProps = props.entrySet().stream().filter(map -> !map.getKey().toString().equals(labelProp))
                     .collect(Collectors.toMap(map -> map.getKey(), map -> map.getValue()));
 
-            if (destinationRNode.isPresent())
-                return streamOfRelationships(createRelationship(node, destinationRNode.get(), props.get(labelProp) instanceof String ? ((String) props.get(labelProp)) : "LABEL_UNDEFINED", filteredProps));
+            if (destinationRNode.isPresent()) {
+                String type = props.get(labelProp) instanceof String ? props.get(labelProp).toString() : "LABEL_UNDEFINED";
+                streamOfRelationships(createRelationship(node, destinationRNode.get(), type, filteredProps));
+            }
 
             return Stream.<RelationshipOutput>empty();
 
@@ -87,26 +94,29 @@ public class RelationshipProcedure extends CoreProcedure {
             @Name(value = "date", defaultValue = "null") LocalDateTime date) {
 
 
-        Optional<Node> sourceCurrentState = createNewSourceState(entitySource, defaultToNow(date));
-
+        Optional<Node> sourceCurrentState = getCurrentState(entitySource);
         entityDestinations.stream().map((entityDestination) -> {
-            Optional<Node> destinationRNode = getRNode(entityDestination);
-            Update updateProcedure = new UpdateBuilder().withLog(log).withDb(db).build().orElseThrow(() -> new VersionerCoreException("Unable to initialize update procedure"));
-
-            if (sourceCurrentState.isPresent() && destinationRNode.isPresent()) {
-                final long destId = destinationRNode.get().getId();
-                updateProcedure.update(entitySource, sourceCurrentState.get().getAllProperties(), "", null);
-                getCurrentRelationship(entitySource).ifPresent(rel -> rel.getEndNode().getRelationships(RelationshipType.withName(type), Direction.OUTGOING).forEach(rel2 -> {
-                    if (rel2.getEndNode().getId() == destId) {
-                        rel2.delete();
-                    }
-                }));
-                return Stream.of(new BooleanOutput(Boolean.TRUE));
-            } else {
-                return Stream.of(new BooleanOutput(Boolean.FALSE));
-            }
+            return getBooleanOutputStream(entitySource, type, sourceCurrentState, entityDestination);
         });
         return Stream.of(new BooleanOutput(Boolean.FALSE));
+    }
+
+    private Stream<BooleanOutput> getBooleanOutputStream(@Name("entitySource") Node entitySource, @Name("type") String type, Optional<Node> sourceCurrentState, Node entityDestination) {
+        Optional<Node> destinationRNode = getRNode(entityDestination);
+        Update updateProcedure = new UpdateBuilder().withLog(log).withDb(db).build().orElseThrow(() -> new VersionerCoreException("Unable to initialize update procedure"));
+
+        if (sourceCurrentState.isPresent() && destinationRNode.isPresent()) {
+            final long destId = destinationRNode.get().getId();
+            updateProcedure.update(entitySource, sourceCurrentState.get().getAllProperties(), "", null);
+            getCurrentRelationship(entitySource).ifPresent(rel -> rel.getEndNode().getRelationships(RelationshipType.withName(type), Direction.OUTGOING).forEach(rel2 -> {
+                if (rel2.getEndNode().getId() == destId) {
+                    rel2.delete();
+                }
+            }));
+            return Stream.of(new BooleanOutput(Boolean.TRUE));
+        } else {
+            return Stream.of(new BooleanOutput(Boolean.FALSE));
+        }
     }
 
     @Procedure(value = "graph.versioner.relationship.delete", mode = Mode.WRITE)
@@ -124,22 +134,7 @@ public class RelationshipProcedure extends CoreProcedure {
         }
 
         Optional<Node> sourceCurrentState = getCurrentState(entitySource);
-        Optional<Node> destinationRNode = getRNode(entityDestination);
-
-        Update updateProcedure = new UpdateBuilder().withLog(log).withDb(db).build().orElseThrow(() -> new VersionerCoreException("Unable to initialize update procedure"));
-
-        if (sourceCurrentState.isPresent() && destinationRNode.isPresent()) {
-            final long destId = destinationRNode.get().getId();
-            updateProcedure.update(entitySource, sourceCurrentState.get().getAllProperties(), "", null);
-            getCurrentRelationship(entitySource).ifPresent(rel -> rel.getEndNode().getRelationships(RelationshipType.withName(type), Direction.OUTGOING).forEach(rel2 -> {
-                if (rel2.getEndNode().getId() == destId) {
-                    rel2.delete();
-                }
-            }));
-            return Stream.of(new BooleanOutput(Boolean.TRUE));
-        } else {
-            return Stream.of(new BooleanOutput(Boolean.FALSE));
-        }
+        return getBooleanOutputStream(entitySource, type, sourceCurrentState, entityDestination);
     }
 
     static Relationship createRelationship(Node source, Node destination, String type, Map<String, Object> relProps) {

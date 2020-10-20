@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -227,14 +228,9 @@ public class Utility {
 
     public static <A, B> List<org.apache.commons.lang3.tuple.Pair<A, B>> zip(List<A> listA, List<B> listB) {
         List<Pair<A, B>> pairList = new LinkedList<>();
-        if (listA.size() != listB.size()) {
-            System.out.println("Lists must have same size" + listA);
-        } else {
-            for (int index = 0; index < listA.size(); index++) {
-                pairList.add(Pair.of(listA.get(index), listB.get(index)));
-            }
-        }
-        return pairList;
+        return IntStream.range(0, listA.size())
+                .mapToObj(i -> Pair.of(listA.get(i), listB.get(i)))
+                        .collect(Collectors.toList());
 
     }
 
