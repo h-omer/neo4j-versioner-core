@@ -78,6 +78,37 @@ public class RelationshipProcedure extends CoreProcedure {
         }
     }
 
+    @Procedure(value = "graph.versioner.relationships.delete", mode = Mode.WRITE)
+    @Description("graph.versioner.relationship.delete(entityA, entityB, type, date) - Delete a custom type relationship from entitySource's current State to entityDestination for the specified date.")
+    public Stream<BooleanOutput> relationshipsDelete(
+            @Name("entitySource") Node entitySource,
+            @Name("entityDestinations") List<Node> entityDestinations,
+            @Name(value = "type") String type,
+            @Name(value = "date", defaultValue = "null") LocalDateTime date) {
+
+
+        Optional<Node> sourceCurrentState = createNewSourceState(entitySource, defaultToNow(date));
+
+        entityDestinations.stream().map((entityDestination) -> {
+            Optional<Node> destinationRNode = getRNode(entityDestination);
+            Update updateProcedure = new UpdateBuilder().withLog(log).withDb(db).build().orElseThrow(() -> new VersionerCoreException("Unable to initialize update procedure"));
+
+            if (sourceCurrentState.isPresent() && destinationRNode.isPresent()) {
+                final long destId = destinationRNode.get().getId();
+                updateProcedure.update(entitySource, sourceCurrentState.get().getAllProperties(), "", null);
+                getCurrentRelationship(entitySource).ifPresent(rel -> rel.getEndNode().getRelationships(RelationshipType.withName(type), Direction.OUTGOING).forEach(rel2 -> {
+                    if (rel2.getEndNode().getId() == destId) {
+                        rel2.delete();
+                    }
+                }));
+                return Stream.of(new BooleanOutput(Boolean.TRUE));
+            } else {
+                return Stream.of(new BooleanOutput(Boolean.FALSE));
+            }
+        });
+        return Stream.of(new BooleanOutput(Boolean.FALSE));
+    }
+
     @Procedure(value = "graph.versioner.relationship.delete", mode = Mode.WRITE)
     @Description("graph.versioner.relationship.delete(entityA, entityB, type, date) - Delete a custom type relationship from entitySource's current State to entityDestination for the specified date.")
     public Stream<BooleanOutput> relationshipDelete(
