@@ -227,7 +227,6 @@ public class Utility {
     }
 
     public static <A, B> List<org.apache.commons.lang3.tuple.Pair<A, B>> zip(List<A> listA, List<B> listB) {
-        List<Pair<A, B>> pairList = new LinkedList<>();
         return IntStream.range(0, listA.size())
                 .mapToObj(i -> Pair.of(listA.get(i), listB.get(i)))
                         .collect(Collectors.toList());
