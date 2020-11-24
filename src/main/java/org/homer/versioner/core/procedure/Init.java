@@ -48,7 +48,7 @@ public class Init extends CoreProcedure {
 
     private Node createNode(Map<String, Object> properties, List<String> labels)  {
 
-        return setProperties(db.createNode(asLabels(labels)), properties);
+        return setProperties(db.beginTx().createNode(asLabels(labels)), properties);
     }
 
     private void connectWithCurrentRelationship(Node entity, Node state, LocalDateTime date) {
@@ -59,7 +59,7 @@ public class Init extends CoreProcedure {
 
     private void createRNodeAndAssociateTo(Node entity) {
 
-        Node rNode = db.createNode(Label.label("R"));
+        Node rNode = db.beginTx().createNode(Label.label("R"));
         rNode.createRelationshipTo(entity, RelationshipType.withName("FOR"));
     }
 }

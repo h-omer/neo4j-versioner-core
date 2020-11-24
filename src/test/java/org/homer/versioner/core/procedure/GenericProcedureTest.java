@@ -1,7 +1,7 @@
 package org.homer.versioner.core.procedure;
 
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.types.Node;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.types.Node;
 
 public abstract class GenericProcedureTest {
 

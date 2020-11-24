@@ -93,7 +93,7 @@ public class Utility {
         List<String> labelNames = new ArrayList<>();
         Spliterator<Label> labelsIterator = node.getLabels().spliterator();
         StreamSupport.stream(labelsIterator, false).forEach(label -> labelNames.add(label.name()));
-        return setProperties(db.createNode(asLabels(labelNames)), node.getAllProperties());
+        return setProperties(db.beginTx().createNode(asLabels(labelNames)), node.getAllProperties());
     }
 
     /**
@@ -113,7 +113,7 @@ public class Utility {
         result.createRelationshipTo(currentState, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
 
         // Updating the HAS_STATE rel for the current node, adding endDate
-        currentState.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.INCOMING)
+        currentState.getRelationships(Direction.INCOMING, RelationshipType.withName(HAS_STATE_TYPE))
                 .forEach(hasStatusRel -> hasStatusRel.setProperty(END_DATE_PROP, instantDate));
 
         // Refactoring current relationship and adding the new ones
@@ -144,19 +144,18 @@ public class Utility {
      * @param state  a {@link Node} representing the State
      * @return {@link Boolean} result
      */
-    public static void checkRelationship(Node entity, Node state) throws VersionerCoreException {
-        Spliterator<Relationship> stateRelIterator = state.getRelationships(RelationshipType.withName(Utility.HAS_STATE_TYPE), Direction.INCOMING).spliterator();
+    public static Boolean checkRelationship(Node entity, Node state) {
+        Spliterator<Relationship> stateRelIterator = state.getRelationships(Direction.INCOMING, RelationshipType.withName(Utility.HAS_STATE_TYPE)).spliterator();
 
-        StreamSupport.stream(stateRelIterator, false).map(hasStateRel -> {
+        return StreamSupport.stream(stateRelIterator, false).map(hasStateRel -> {
             Node maybeEntity = hasStateRel.getStartNode();
             if (maybeEntity.getId() != entity.getId()) {
                 throw new VersionerCoreException("Can't patch the given entity, because the given State is owned by another entity.");
             }
             return true;
-        }).findFirst().orElseGet(() -> {
-            throw new VersionerCoreException("Can't find any entity node relate to the given State.");
-        });
-
+        })
+                .findFirst()
+                .orElseThrow(() -> new VersionerCoreException("Can't find any entity node relate to the given State."));
     }
 
     /**
@@ -197,8 +196,8 @@ public class Utility {
      */
     public static void isEntityOrThrowException(Node node) {
 
-        streamOfIterable(node.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING)).findAny()
-                .map(ignored -> streamOfIterable(node.getRelationships(RelationshipType.withName("R"), Direction.INCOMING)).findAny())
+        streamOfIterable(node.getRelationships(Direction.OUTGOING, RelationshipType.withName("CURRENT"))).findAny()
+                .map(ignored -> streamOfIterable(node.getRelationships(Direction.INCOMING, RelationshipType.withName("R"))).findAny())
                 .orElseThrow(() -> new VersionerCoreException("The given node is not a Versioner Core Entity"));
     }
 
@@ -214,12 +213,12 @@ public class Utility {
     }
 
     public static Optional<Relationship> getCurrentRelationship(Node entity) {
-        return streamOfIterable(entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING))
+        return streamOfIterable(entity.getRelationships(Direction.OUTGOING, RelationshipType.withName(CURRENT_TYPE)))
                 .findFirst();
     }
 
     public static Optional<Node> getCurrentState(Node entity) {
-        return streamOfIterable(entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING)).map(relationship -> relationship.getEndNode()).findFirst();
+        return streamOfIterable(entity.getRelationships(Direction.OUTGOING, RelationshipType.withName(CURRENT_TYPE))).map(relationship -> relationship.getEndNode()).findFirst();
     }
 
     public static LocalDateTime convertEpochToLocalDateTime(Long epochDateTime) {

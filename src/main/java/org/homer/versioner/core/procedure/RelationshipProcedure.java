@@ -149,7 +149,7 @@ public class RelationshipProcedure extends CoreProcedure {
         if (sourceCurrentState.isPresent() && destinationRNode.isPresent()) {
             final long destId = destinationRNode.get().getId();
             updateProcedure.update(entitySource, sourceCurrentState.get().getAllProperties(), "", null);
-            getCurrentRelationship(entitySource).ifPresent(rel -> rel.getEndNode().getRelationships(RelationshipType.withName(type), Direction.OUTGOING).forEach(rel2 -> {
+            getCurrentRelationship(entitySource).ifPresent(rel -> rel.getEndNode().getRelationships(Direction.OUTGOING, RelationshipType.withName(type)).forEach(rel2 -> {
                 if (rel2.getEndNode().getId() == destId) {
                     rel2.delete();
                 }

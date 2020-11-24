@@ -38,7 +38,7 @@ public class Rollback extends CoreProcedure {
         LocalDateTime instantDate = defaultToNow(date);
 
         // Getting the CURRENT rel if it exists
-        Spliterator<Relationship> currentRelIterator = entity.getRelationships(RelationshipType.withName(Utility.CURRENT_TYPE), Direction.OUTGOING).spliterator();
+        Spliterator<Relationship> currentRelIterator = entity.getRelationships(Direction.OUTGOING, RelationshipType.withName(Utility.CURRENT_TYPE)).spliterator();
         Optional<Relationship> currentRelationshipOptional = StreamSupport.stream(currentRelIterator, false).filter(Objects::nonNull).findFirst();
 
         Optional<Node> newState = currentRelationshipOptional.map(currentRelationship -> {
@@ -87,15 +87,15 @@ public class Rollback extends CoreProcedure {
         Utility.checkRelationship(entity, state);
 
         // If the given State is the CURRENT one, null must be returned
-        Spliterator<Relationship> currentRelIterator = state.getRelationships(RelationshipType.withName(Utility.CURRENT_TYPE), Direction.INCOMING).spliterator();
+        Spliterator<Relationship> currentRelIterator = state.getRelationships(Direction.INCOMING, RelationshipType.withName(Utility.CURRENT_TYPE)).spliterator();
         Optional<Relationship> currentRelationshipOptional = StreamSupport.stream(currentRelIterator, false).filter(Objects::nonNull).findFirst();
         if (!currentRelationshipOptional.isPresent()) {
             // If the given State already has a ROLLBACK relationship, null must be returned
-            Spliterator<Relationship> rollbackRelIterator = state.getRelationships(RelationshipType.withName(Utility.ROLLBACK_TYPE), Direction.OUTGOING).spliterator();
+            Spliterator<Relationship> rollbackRelIterator = state.getRelationships(Direction.OUTGOING, RelationshipType.withName(Utility.ROLLBACK_TYPE)).spliterator();
             Optional<Relationship> rollbackRelationshipOptional = StreamSupport.stream(rollbackRelIterator, false).filter(Objects::nonNull).findFirst();
             if (!rollbackRelationshipOptional.isPresent()) {
                 // Otherwise, the node can be rolled back
-                currentRelIterator = entity.getRelationships(RelationshipType.withName(Utility.CURRENT_TYPE), Direction.OUTGOING).spliterator();
+                currentRelIterator = entity.getRelationships(Direction.OUTGOING, RelationshipType.withName(Utility.CURRENT_TYPE)).spliterator();
                 currentRelationshipOptional = StreamSupport.stream(currentRelIterator, false).filter(Objects::nonNull).findFirst();
 
                 newState = currentRelationshipOptional.map(currentRelationship -> {
@@ -134,11 +134,11 @@ public class Rollback extends CoreProcedure {
      * @return the first available rollback node
      */
     private Optional<Node> getFirstAvailableRollbackNode(Node state) {
-        return StreamSupport.stream(state.getRelationships(RelationshipType.withName(Utility.ROLLBACK_TYPE), Direction.OUTGOING).spliterator(), false).findFirst()
+        return StreamSupport.stream(state.getRelationships(Direction.OUTGOING, RelationshipType.withName(Utility.ROLLBACK_TYPE)).spliterator(), false).findFirst()
                 // Recursive iteration for ROLLBACKed State node
                 .map(e -> getFirstAvailableRollbackNode(e.getEndNode()))
                 // No ROLLBACK relationship found
-                .orElse(StreamSupport.stream(state.getRelationships(RelationshipType.withName(Utility.PREVIOUS_TYPE), Direction.OUTGOING).spliterator(), false)
+                .orElse(StreamSupport.stream(state.getRelationships(Direction.OUTGOING, RelationshipType.withName(Utility.PREVIOUS_TYPE)).spliterator(), false)
                         .findFirst().map(Relationship::getEndNode));
     }
 

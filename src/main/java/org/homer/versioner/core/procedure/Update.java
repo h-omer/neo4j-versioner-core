@@ -38,12 +38,12 @@ public class Update extends CoreProcedure {
         if (!additionalLabel.isEmpty()) {
             labelNames.add(additionalLabel);
         }
-        Node result = setProperties(db.createNode(asLabels(labelNames)), stateProps);
+        Node result = setProperties(db.beginTx().createNode(asLabels(labelNames)), stateProps);
 
         LocalDateTime instantDate = defaultToNow(date);
 
         // Getting the CURRENT rel if it exist
-        Spliterator<Relationship> currentRelIterator = entity.getRelationships(RelationshipType.withName(CURRENT_TYPE), Direction.OUTGOING).spliterator();
+        Spliterator<Relationship> currentRelIterator = entity.getRelationships(Direction.OUTGOING, RelationshipType.withName(CURRENT_TYPE)).spliterator();
         StreamSupport.stream(currentRelIterator, false).forEach(currentRel -> {
             Node currentState = currentRel.getEndNode();
 
@@ -53,7 +53,7 @@ public class Update extends CoreProcedure {
             result.createRelationshipTo(currentState, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
 
             // Updating the HAS_STATE rel for the current node, adding endDate
-            currentState.getRelationships(RelationshipType.withName(HAS_STATE_TYPE), Direction.INCOMING)
+            currentState.getRelationships(Direction.INCOMING, RelationshipType.withName(HAS_STATE_TYPE))
                     .forEach(hasStatusRel -> hasStatusRel.setProperty(END_DATE_PROP, instantDate));
 
             // Refactoring current relationship and adding the new ones
@@ -87,7 +87,7 @@ public class Update extends CoreProcedure {
         Node newState = currentRelationshipOpt
                 .map(currentRelationship -> createPatchedState(stateProps, labelNames, instantDate, currentRelationship))
                 .orElseGet(() -> {
-                    Node result = setProperties(db.createNode(asLabels(labelNames)), stateProps);
+                    Node result = setProperties(db.beginTx().createNode(asLabels(labelNames)), stateProps);
                     addCurrentState(result, entity, instantDate);
                     return result;
                 });
@@ -140,7 +140,7 @@ public class Update extends CoreProcedure {
         // Patching the current node into the new one.
         Map<String, Object> patchedProps = currentState.getAllProperties();
         patchedProps.putAll(stateProps);
-        Node newStateToElaborate = setProperties(db.createNode(asLabels(labels)), patchedProps);
+        Node newStateToElaborate = setProperties(db.beginTx().createNode(asLabels(labels)), patchedProps);
 
         // Updating CURRENT state
         return currentStateUpdate(entity, instantDate, currentRelationship, currentState, currentDate, newStateToElaborate);
