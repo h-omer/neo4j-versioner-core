@@ -26,7 +26,7 @@ public class InitTest {
     /*------------------------------*/
     /*             init             */
     /*------------------------------*/
-    //@Test
+    @Test
     public void shouldCreateAnEntityAndAStateNodeWithoutPropsIfEmptyMapIsPassed() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -44,7 +44,7 @@ public class InitTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldCreateAnEntityWithPropertiesWithAState() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -64,7 +64,7 @@ public class InitTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldCreateAnEntityWithPropertiesWithAStateAndItsProperties() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -87,7 +87,7 @@ public class InitTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldCreateAnEntityWithPropertiesWithAStateAndItsPropertiesWithAdditionalLabelButNoDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -112,7 +112,7 @@ public class InitTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldCreateAnEntityWithPropertiesWithAStateAndItsPropertiesWithAdditionalLabelAndDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -139,7 +139,7 @@ public class InitTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldCreateAnRNodeConnectedToTheEntity() throws Throwable {
 
         try (Driver driver = GraphDatabase.driver(neo4j.boltURI(), Config.builder().build()); Session session = driver.session()) {

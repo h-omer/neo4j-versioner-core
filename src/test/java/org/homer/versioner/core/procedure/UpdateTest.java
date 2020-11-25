@@ -26,7 +26,7 @@ public class UpdateTest extends GenericProcedureTest {
     /*            update            */
     /*------------------------------*/
 
-    //@Test
+    @Test
     public void shouldCreateANewStateWithoutAdditionalLabelAndDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -48,7 +48,7 @@ public class UpdateTest extends GenericProcedureTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldCreateANewStateWithAdditionalLabelButWithoutDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -72,7 +72,7 @@ public class UpdateTest extends GenericProcedureTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldCreateANewStateWithAdditionalLabelAndDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -100,7 +100,7 @@ public class UpdateTest extends GenericProcedureTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldCreateANewStateFromAnEntityWithoutAState() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -121,7 +121,7 @@ public class UpdateTest extends GenericProcedureTest {
     /*             patch            */
 	/*------------------------------*/
 
-    //@Test
+    @Test
     public void shouldCreateAndPatchANewStateWithoutAdditionalLabelAndDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -146,7 +146,7 @@ public class UpdateTest extends GenericProcedureTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldCreateAndPatchANewStateWithAdditionalLabelButWithoutDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -173,7 +173,7 @@ public class UpdateTest extends GenericProcedureTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldCreateAndPatchANewStateWithAdditionalLabelAndDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -204,7 +204,7 @@ public class UpdateTest extends GenericProcedureTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldCreateAndPatchANewStateWithAdditionalLabelAndDateButWithANewProp() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -235,7 +235,7 @@ public class UpdateTest extends GenericProcedureTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldCreateANewStateFromAnEntityWithoutAStateUsingPatch() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -252,7 +252,7 @@ public class UpdateTest extends GenericProcedureTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldCreateACopyOfTheCurrentStateIfPatchedWithoutStateProps() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -273,7 +273,7 @@ public class UpdateTest extends GenericProcedureTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldMaintainTheRelationshipsFromTheCurrentState() throws Throwable {
 
         try (Driver driver = GraphDatabase
@@ -300,7 +300,7 @@ public class UpdateTest extends GenericProcedureTest {
     /*          patch.from          */
 	/*------------------------------*/
 
-	//@Test
+	@Test
     public void shouldCreateACopyOfTheGivenStateWithoutAdditionalDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -327,7 +327,7 @@ public class UpdateTest extends GenericProcedureTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldCreateACopyOfTheGivenStateWithAdditionalDate() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -358,7 +358,7 @@ public class UpdateTest extends GenericProcedureTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldCreateACopyOfTheGivenStateWithAdditionalDateButWithANewProp() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -390,7 +390,7 @@ public class UpdateTest extends GenericProcedureTest {
         }
     }
 
-    //@Test (expected = ClientException.class)
+    @Test (expected = ClientException.class)
     public void shouldNotCreateACopyOfTheGivenStateSinceItsADifferentEntityState() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase

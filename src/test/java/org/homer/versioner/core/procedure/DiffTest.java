@@ -26,7 +26,7 @@ public class DiffTest {
     /*           diff           */
     /*--------------------------*/
 
-    //@Test
+    @Test
     public void shouldDiffGetTheDiffBetweenTwoStatesCorrectly() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase.driver(neo4j.boltURI(), Config.builder().build()); Session session = driver.session()) {
@@ -46,7 +46,7 @@ public class DiffTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldDiffGetTheDiffBetweenTwoStatesCorrectlyWithDifferentObjectTypes() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase.driver(neo4j.boltURI(), Config.builder().build()); Session session = driver.session()) {
@@ -66,7 +66,7 @@ public class DiffTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldDiffGetNoDiffIfStatesAreEqual() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase.driver(neo4j.boltURI(), Config.builder().build()); Session session = driver.session()) {
@@ -83,7 +83,7 @@ public class DiffTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldDiffGetNoDiffIfOneOfTheTwoStatesIsNull() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase.driver(neo4j.boltURI(), Config.builder().build()); Session session = driver.session()) {
@@ -103,7 +103,7 @@ public class DiffTest {
     /*           diff.from.previous           */
     /*----------------------------------------*/
 
-    //@Test
+    @Test
     public void shouldDiffFromPreviousGetTheDiffFromPreviousCorrectly() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase.driver(neo4j.boltURI(), Config.builder().build()); Session session = driver.session()) {
@@ -124,7 +124,7 @@ public class DiffTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldDiffFromPreviousGetNoDiffIfNoPreviousState() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase.driver(neo4j.boltURI(), Config.builder().build()); Session session = driver.session()) {
@@ -140,7 +140,7 @@ public class DiffTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldDiffFromPreviousGetNoDiffIfOneOfTheTwoStatesAreNull() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase.driver(neo4j.boltURI(), Config.builder().build()); Session session = driver.session()) {
@@ -160,7 +160,7 @@ public class DiffTest {
     /*           diff.from.current           */
     /*---------------------------------------*/
 
-    //@Test
+    @Test
     public void shouldDiffFromCurrentGetTheDiffFromCurrentCorrectly() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase.driver(neo4j.boltURI(), Config.builder().build()); Session session = driver.session()) {
@@ -182,7 +182,7 @@ public class DiffTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldDiffFromCurrentGetNoDiffIfGivenCurrentState() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase.driver(neo4j.boltURI(), Config.builder().build()); Session session = driver.session()) {
@@ -200,7 +200,7 @@ public class DiffTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldDiffFromCurrentGetNoDiffIfInputStateDoesNotExist() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase.driver(neo4j.boltURI(), Config.builder().build()); Session session = driver.session()) {

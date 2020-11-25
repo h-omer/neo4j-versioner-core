@@ -71,7 +71,7 @@ public class GetTest extends GenericProcedureTest{
     /*      get.current.state       */
 	/*------------------------------*/
 
-    //@Test
+    @Test
     public void shouldGetCurrentStateByGivenEntity() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -92,7 +92,7 @@ public class GetTest extends GenericProcedureTest{
 	/*            get.all           */
 	/*------------------------------*/
 
-    //@Test
+    @Test
     public void shouldGetAllStateNodesByGivenEntity() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -185,7 +185,7 @@ public class GetTest extends GenericProcedureTest{
 	/*         get.by.label         */
 	/*------------------------------*/
 
-    //@Test
+    @Test
     public void shouldGetOneErrorStateNodeByGivenErrorLabel() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -210,7 +210,7 @@ public class GetTest extends GenericProcedureTest{
         }
     }
 
-    //@Test
+    @Test
     public void shouldGetAllErrorStateNodeByGivenErrorLabel() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -241,7 +241,7 @@ public class GetTest extends GenericProcedureTest{
 	/*         get.by.date          */
 	/*------------------------------*/
 
-    //@Test
+    @Test
     public void shouldGetSpecificStateNodeByGivenEntityAndDate() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -272,7 +272,7 @@ public class GetTest extends GenericProcedureTest{
 	/*         get.nth.state          */
 	/*--------------------------------*/
 
-    //@Test
+    @Test
     public void shouldGetNthStateNodeOfGivenEntity() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -298,7 +298,7 @@ public class GetTest extends GenericProcedureTest{
         }
     }
 
-    //@Test
+    @Test
     public void shouldGetNthZeroStateNodeOfGivenEntity() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase

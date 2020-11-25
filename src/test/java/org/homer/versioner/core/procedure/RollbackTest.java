@@ -25,7 +25,7 @@ public class RollbackTest {
     /*           rollback           */
     /*------------------------------*/
 
-    //@Test
+    @Test
     public void shouldGetOldNodeAfterARollbackOnATwoStateEntityNode() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -53,7 +53,7 @@ public class RollbackTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldUseExistingRollbackRelationshipToRollBackAgain() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -84,7 +84,7 @@ public class RollbackTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldGetNullIfThereIsNoPreviousState() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -105,7 +105,7 @@ public class RollbackTest {
     /*          rollback.to         */
 	/*------------------------------*/
 
-    //@Test
+    @Test
     public void shouldRollbackToTheGivenStateNode() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -133,7 +133,7 @@ public class RollbackTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldGetNullIfTheGivenNodeHasAlreadyBeenRolledBack() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -153,7 +153,7 @@ public class RollbackTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldGetNullIfTheGivenNodeIsTheCurrentState() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -170,7 +170,7 @@ public class RollbackTest {
         }
     }
 
-    //@Test (expected = ClientException.class)
+    @Test (expected = ClientException.class)
     public void shouldNotRollbackToTheGivenStateSinceItsADifferentEntityState() throws Throwable {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -191,7 +191,7 @@ public class RollbackTest {
 	/*         rollback.nth          */
 	/*-------------------------------*/
 
-    //@Test
+    @Test
     public void shouldRollbackNthWorkCorrectly() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
@@ -226,7 +226,7 @@ public class RollbackTest {
         }
     }
 
-    //@Test
+    @Test
     public void shouldRollbackNthToZeroWorkCorrectly() {
         // This is in a try-block, to make sure we close the driver after the test
         try (Driver driver = GraphDatabase
