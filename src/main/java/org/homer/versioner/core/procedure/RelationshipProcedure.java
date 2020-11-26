@@ -144,7 +144,7 @@ public class RelationshipProcedure extends CoreProcedure {
 
     private Stream<BooleanOutput> getBooleanOutputStream(@Name("entitySource") Node entitySource, @Name("type") String type, Optional<Node> sourceCurrentState, Node entityDestination) {
         Optional<Node> destinationRNode = getRNode(entityDestination);
-        Update updateProcedure = new UpdateBuilder().withLog(log).withDb(db).build().orElseThrow(() -> new VersionerCoreException("Unable to initialize update procedure"));
+        Update updateProcedure = new UpdateBuilder().withLog(log).withTransaction(transaction).build().orElseThrow(() -> new VersionerCoreException("Unable to initialize update procedure"));
 
         if (sourceCurrentState.isPresent() && destinationRNode.isPresent()) {
             final long destId = destinationRNode.get().getId();
@@ -192,7 +192,7 @@ public class RelationshipProcedure extends CoreProcedure {
 
     private Optional<Node> createNewSourceState(Node entitySource, LocalDateTime date) {
 
-        Update updateProcedure = new UpdateBuilder().withLog(log).withDb(db).build().orElseThrow(() -> new VersionerCoreException("Unable to initialize update procedure"));
+        Update updateProcedure = new UpdateBuilder().withLog(log).withTransaction(transaction).build().orElseThrow(() -> new VersionerCoreException("Unable to initialize update procedure"));
         return updateProcedure.patch(entitySource, Collections.emptyMap(), StringUtils.EMPTY, date)
                 .map(n -> n.node)
                 .findFirst();
