@@ -8,6 +8,9 @@ import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Relationship;
 import org.neo4j.harness.junit.Neo4jRule;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -114,7 +117,7 @@ public class RelationshipProcedureTest extends GenericProcedureTest {
             final String dateString = convertEpochToLocalDateTime(date).toString();
 
             // When
-            final String query = "WITH [%d, %d, %d, %d] as list MATCH (a:Entity), (b:Entity) WHERE id(a) = %d AND any(item in list where id(b) = item) WITH a, collect(b) as bs CALL graph.versioner.relationships.create(a, bs, [{versionerLabel:'b',name:'b'},{versionerLabel:\"c\",name:\"c\"},{versionerLabel:\"d\",name:\"d\"},{versionerLabel:\"e\",name:\"e\"}]) YIELD relationship RETURN relationship";
+            final String query = "WITH [%d, %d, %d, %d] as list MATCH (a:Entity), (b:Entity) WHERE id(a) = %d AND any(item in list where id(b) = item) WITH a, collect(b) as bs CALL graph.versioner.relationships.create(a, bs, [{versionerLabel:\"b\",name:\"b\"},{versionerLabel:\"c\",name:\"c\"},{versionerLabel:\"d\",name:\"d\"},{versionerLabel:\"e\",name:\"e\"}]) YIELD relationship RETURN relationship";
             session.run(String.format(query,entityB.id(), entityC.id(), entityD.id(), entityE.id(), entityA.id(), dateString));
 
             // Then
