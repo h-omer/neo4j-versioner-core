@@ -27,7 +27,7 @@ import static org.homer.versioner.core.Utility.*;
  * RelationshipProcedure class, it contains all the Procedures needed to create versioned relationships between Entities
  */
 public class RelationshipProcedure extends CoreProcedure {
-    @Procedure(value = "graph.versioner.relationships.create", mode = Mode.WRITE)
+    @Procedure(value = "graph.versioner.relationships.createTo", mode = Mode.WRITE)
     @Description("graph.versioner.relationships.create(entityA, entitiesB, relProps, date) - Create multiple relationships from entitySource to each of the entityDestinations with the given type and/or properties for the specified date.  The relationship 'versionerLabel' along with properties for each relationship can be passed in via 'relProps' a default label ('LABEL_UNDEFINED') is assigned to relationships that are not supplied with a 'versionerLabel' attribute in the props")
     public Stream<RelationshipOutput> relationshipsCreate(
             @Name("entitySource") Node entitySource,
@@ -43,7 +43,7 @@ public class RelationshipProcedure extends CoreProcedure {
         return relationshipOutputStream;
     }
 
-    @Procedure(value = "graph.versioner.relationships.createfrom", mode = Mode.WRITE)
+    @Procedure(value = "graph.versioner.relationships.createFrom", mode = Mode.WRITE)
     @Description("graph.versioner.relationships.createfrom(entitiesA, entityB, relProps, date) - Create multiple relationships from each of the entitySources to the entityDestination with the given type and/or properties for the specified date.  The relationship 'versionerLabel' along with properties for each relationship can be passed in via 'relProps' a default label ('LABEL_UNDEFINED') is assigned to relationships that are not supplied with a 'versionerLabel' attribute in the props")
     public Stream<RelationshipOutput> relationshipsCreateFrom(
             @Name("entitySources") List<Node> entitySources,
@@ -52,26 +52,30 @@ public class RelationshipProcedure extends CoreProcedure {
             @Name(value = "date", defaultValue = "null") LocalDateTime date) {
 
         entitySources.sort(Comparator.comparing(o -> o.getProperty("id").toString()));
+        entitySources.stream().map(node -> {
+            log.info("orderedNodes:  " + node.getProperty("id").toString());
+            return null;
+        });
         Stream<RelationshipOutput> out = null;
         Optional<Node> destinationRNode = getRNode(entityDestination);
         isEntityOrThrowException(entityDestination);
         if (entitySources.size() == relProps.size() && destinationRNode.isPresent()) {
             out = zip(entitySources, relProps).stream().map((item) -> {
                 final Node entitySource = item.getLeft();
-                log.info("entity source: "+entitySource.getProperty("id").toString());
+                log.info("entity source: " + entitySource.getProperty("id").toString());
                 Map<String, Object> props = item.getRight();
                 final String labelProp = "versionerLabel";
                 Map<String, Object> filteredProps = props.entrySet().stream().filter(map -> !map.getKey().equals(labelProp))
                         .collect(Collectors.toMap(map -> map.getKey(), map -> map.getValue()));
-                    String type = props.get(labelProp) instanceof String ? props.get(labelProp).toString() : "LABEL_UNDEFINED";
-                    Optional<Node> sourceCurrentState = createNewSourceState(entitySource, defaultToNow(date));
-                    boolean exists = StreamSupport.stream(sourceCurrentState.get().getRelationships(Direction.OUTGOING, RelationshipType.withName(type)).spliterator(), false).anyMatch(relationship -> relationship.getEndNode().getId() == destinationRNode.get().getId());
-                    if (exists) {
-                        return Stream.<RelationshipOutput>empty();
-                    } else {
-                        log.info("creating relationship from: " + sourceCurrentState.get().getId() + "  to: " + destinationRNode.get().getId());
-                        return streamOfRelationships(createRelationship(sourceCurrentState.get(), destinationRNode.get(), type, filteredProps));
-                    }
+                String type = props.get(labelProp) instanceof String ? props.get(labelProp).toString() : "LABEL_UNDEFINED";
+                Optional<Node> sourceCurrentState = createNewSourceState(entitySource, defaultToNow(date));
+                boolean exists = StreamSupport.stream(sourceCurrentState.get().getRelationships(Direction.OUTGOING, RelationshipType.withName(type)).spliterator(), false).anyMatch(relationship -> relationship.getEndNode().getId() == destinationRNode.get().getId());
+                if (exists) {
+                    return Stream.<RelationshipOutput>empty();
+                } else {
+                    log.info("creating relationship from: " + sourceCurrentState.get().getId() + "  to: " + destinationRNode.get().getId());
+                    return streamOfRelationships(createRelationship(sourceCurrentState.get(), destinationRNode.get(), type, filteredProps));
+                }
             }).reduce(Stream::concat).orElseGet(Stream::empty);
         }
         return out;
@@ -123,7 +127,7 @@ public class RelationshipProcedure extends CoreProcedure {
     }
 
     @Procedure(value = "graph.versioner.relationships.delete", mode = Mode.WRITE)
-    @Description("graph.versioner.relationship.delete(entityA, entityB, type, date) - Delete a custom type relationship from entitySource's current State to entityDestination for the specified date.")
+    @Description("graph.versioner.relationship.delete(entityA, entityB, type, date) - Delete multiple custom type relationship from entitySource's current State to each of the entityDestinations for the specified date.")
     public Stream<BooleanOutput> relationshipsDelete(
             @Name("entitySource") Node entitySource,
             @Name("entityDestinations") List<Node> entityDestinations,
