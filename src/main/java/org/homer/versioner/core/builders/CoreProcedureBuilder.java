@@ -4,6 +4,7 @@ import org.homer.versioner.core.core.CoreProcedure;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
 /**
@@ -13,7 +14,7 @@ import java.util.Optional;
  */
 public abstract class CoreProcedureBuilder<T extends CoreProcedure> {
 
-    private Class<T> clazz;
+    private final Class<T> clazz;
 
     private GraphDatabaseService db;
     private Log log;
@@ -62,13 +63,12 @@ public abstract class CoreProcedureBuilder<T extends CoreProcedure> {
      * @return instance
      */
     Optional<T> instantiate() {
-        T instance;
+        T instance = null;
         try {
-            instance = clazz.newInstance();
+            instance = clazz.getDeclaredConstructor().newInstance();
             instance.db = db;
             instance.log = log;
-        } catch (InstantiationException | IllegalAccessException e) {
-           instance = null;
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e ) {
            log.error(e.getMessage());
         }
         return Optional.ofNullable(instance);

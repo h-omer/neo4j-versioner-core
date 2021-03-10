@@ -22,6 +22,9 @@ import static org.homer.versioner.core.Utility.*;
  */
 public class Update extends CoreProcedure {
 
+    public static final String DATE_FIELD = "date";
+    public static final String R_LABEL = "R";
+
     @Procedure(value = "graph.versioner.update", mode = Mode.WRITE)
     @Description("graph.versioner.update(entity, {key:value,...}, additionalLabel, date) - Add a new State to the given Entity.")
     public Stream<NodeOutput> update(
@@ -44,7 +47,7 @@ public class Update extends CoreProcedure {
         StreamSupport.stream(currentRelIterator, false).forEach(currentRel -> {
             Node currentState = currentRel.getEndNode();
 
-            LocalDateTime currentDate = (LocalDateTime) currentRel.getProperty("date");
+            LocalDateTime currentDate = (LocalDateTime) currentRel.getProperty(DATE_FIELD);
 
             // Creating PREVIOUS relationship between the current and the new State
             result.createRelationshipTo(currentState, RelationshipType.withName(PREVIOUS_TYPE)).setProperty(DATE_PROP, currentDate);
@@ -117,7 +120,7 @@ public class Update extends CoreProcedure {
                 .orElseThrow(() -> new VersionerCoreException("Can't find any current State node for the given entity."));
 
         //Copy all the relationships
-        if (useCurrentRel) {
+        if (Boolean.TRUE.equals(useCurrentRel)) {
             currentRelationshipOpt.ifPresent(rel -> connectStateToRs(rel.getEndNode()   , newState));
         } else {
             connectStateToRs(state, newState);
@@ -131,7 +134,7 @@ public class Update extends CoreProcedure {
     private Node createPatchedState(Map<String, Object> stateProps, List<String> labels, LocalDateTime instantDate, Relationship currentRelationship) {
 
         Node currentState = currentRelationship.getEndNode();
-        LocalDateTime currentDate = (LocalDateTime) currentRelationship.getProperty("date");
+        LocalDateTime currentDate = (LocalDateTime) currentRelationship.getProperty(DATE_FIELD);
         Node entity = currentRelationship.getStartNode();
 
         // Patching the current node into the new one.
@@ -145,7 +148,7 @@ public class Update extends CoreProcedure {
 
     protected static void connectStateToRs(Node sourceState, Node newState) {
         streamOfIterable(sourceState.getRelationships(Direction.OUTGOING))
-                .filter(rel -> rel.getEndNode().hasLabel(Label.label("R")))
+                .filter(rel -> rel.getEndNode().hasLabel(Label.label(R_LABEL)))
                 .forEach(rel -> RelationshipProcedure.createRelationship(newState, rel.getEndNode(), rel.getType().name(), rel.getAllProperties()));
     }
 }

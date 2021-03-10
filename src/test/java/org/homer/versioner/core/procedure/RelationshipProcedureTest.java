@@ -9,6 +9,8 @@ import org.neo4j.driver.v1.types.Relationship;
 import org.neo4j.harness.junit.Neo4jRule;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -98,24 +100,71 @@ public class RelationshipProcedureTest extends GenericProcedureTest {
     }
 
     @Test
+    public void shouldCreateTheRelationshipsAssociatedToANewStateEachHavingOwnLabelAndProps() {
+
+        try (Driver driver = GraphDatabase
+                .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
+
+            // Given
+            final Node entityA = initEntity(session);
+            final Node entityB = initEntity(session);
+            final Node entityC = initEntity(session);
+            final Node entityD = initEntity(session);
+            final Node entityE = initEntity(session);
+
+            final String testType = "testType";
+            final Long date = 593920000000L;
+            final String dateString = convertEpochToLocalDateTime(date).toString();
+
+            // When
+            final String query = "WITH [%d, %d, %d, %d] as list MATCH (a:Entity), (b:Entity) WHERE id(a) = %d AND any(item in list where id(b) = item) WITH a, collect(b) as bs CALL graph.versioner.relationships.create(a, bs, [{versionerLabel:\"b\",name:\"b\"},{versionerLabel:\"c\",name:\"c\"},{versionerLabel:\"d\",name:\"d\"},{versionerLabel:\"e\",name:\"e\"}]) YIELD relationship RETURN relationship";
+            session.run(String.format(query,entityB.id(), entityC.id(), entityD.id(), entityE.id(), entityA.id(), dateString));
+
+            // Then
+            final String querySourceCurrent = "MATCH (e:Entity)-[r:CURRENT]->(:State)-[l:%s]->(:R) WHERE id(e) = %d RETURN l";
+            final Relationship bRelationship = session.run(String.format(querySourceCurrent, "b", entityA.id())).single().get("l").asRelationship();
+
+            assertThat(bRelationship)
+                    .matches(rel -> rel.containsKey("name") && rel.get("name").asString().equals("b"));
+
+            final Relationship cRelationship = session.run(String.format(querySourceCurrent, "c", entityA.id())).single().get("l").asRelationship();
+
+            assertThat(cRelationship)
+                    .matches(rel -> rel.containsKey("name") && rel.get("name").asString().equals("c"));
+
+
+            final Relationship dRelationship = session.run(String.format(querySourceCurrent, "d", entityA.id())).single().get("l").asRelationship();
+
+            assertThat(dRelationship)
+                    .matches(rel -> rel.containsKey("name") && rel.get("name").asString().equals("d"));
+
+            final Relationship eRelationship = session.run(String.format(querySourceCurrent, "e", entityA.id())).single().get("l").asRelationship();
+
+            assertThat(eRelationship)
+                    .matches(rel -> rel.containsKey("name") && rel.get("name").asString().equals("e"));
+        }
+    }
+
+    @Test
     public void shouldCreateTheRelationshipAssociatedToANewStateHavingRequestedDate() {
 
         try (Driver driver = GraphDatabase
                 .driver(neo4j.boltURI(), Config.build().withEncryption().toConfig()); Session session = driver.session()) {
 
             // Given
-            Node entityA = initEntity(session);
-            Node entityB = initEntity(session);
-            String testType = "testType";
-            Long date = 593920000000L;
+            final Node entityA = initEntity(session);
+            final Node entityB = initEntity(session);
+            final String testType = "testType";
+            final Long date = 593920000000L;
+            final String dateString = convertEpochToLocalDateTime(date).toString();
 
             // When
-            String query = "MATCH (a:Entity), (b:Entity) WHERE id(a) = %d AND id(b) = %d WITH a, b CALL graph.versioner.relationship.create(a, b, '%s', {}, localdatetime('1988-10-27T02:46:40')) YIELD relationship RETURN relationship";
-            session.run(String.format(query, entityA.id(), entityB.id(), testType));
+            final String query = "MATCH (a:Entity), (b:Entity) WHERE id(a) = %d AND id(b) = %d WITH a, b CALL graph.versioner.relationship.create(a, b, '%s', {}, localdatetime('%s')) YIELD relationship RETURN relationship";
+            session.run(String.format(query, entityA.id(), entityB.id(), testType, dateString));
 
             // Then
-            String querySourceCurrent = "MATCH (e:Entity)-[r:CURRENT]->(:State)-[:%s]->(:R) WHERE id(e) = %d RETURN r";
-            Relationship currentRelationship = session.run(String.format(querySourceCurrent, testType, entityA.id())).single().get("r").asRelationship();
+            final String querySourceCurrent = "MATCH (e:Entity)-[r:CURRENT]->(:State)-[:%s]->(:R) WHERE id(e) = %d RETURN r";
+            final Relationship currentRelationship = session.run(String.format(querySourceCurrent, testType, entityA.id())).single().get("r").asRelationship();
 
             assertThat(currentRelationship)
                     .matches(rel -> rel.containsKey("date") && rel.get("date").asLocalDateTime().equals(convertEpochToLocalDateTime(date)));
