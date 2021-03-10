@@ -116,11 +116,11 @@ name | parameters | return values | description
 [graph.versioner.diff](#diff) | **stateFrom**, **stateTo** | operation, label, oldValue, newValue | Get a list of differences that must be applied to stateFrom in order to convert it into stateTo.
 [graph.versioner.diff.from.previous](#diff-from-previous) | **state** | operation, label, oldValue, newValue | Get a list of differences that must be applied to the previous status of the given one in order to become the given state.
 [graph.versioner.diff.from.current](#diff-from-current) | **state** | operation, label, oldValue, newValue | Get a list of differences that must be applied to the given state in order to become the current entity state.
-[graph.versioner.relationships.createTo](#relationships-createTo) | **entitySource**, **List<entityDestination>**, relationshipType, *{key:value,...}*, *date* | **relationship** | Creates a new state for the source entity connected to each of the R nodes of the destinations with a relationship of the given type.
-[graph.versioner.relationships.createFrom](#relationships-createFrom) | **List<entitySource>**, **entityDestination**, relationshipType, *{key:value,...}*, *date* | **relationship** | Creates a new state for each of the source entities connected to the R nodes of the destination with a relationship of the given type.
 [graph.versioner.relationship.create](#relationship-create) | **entitySource**, **entityDestination**, relationshipType, *{key:value,...}*, *date* | **relationship** | Creates a new state for the source entity connected to the R node of the destination with a relationship of the given type.
 [graph.versioner.relationship.delete](#relationship-delete) | **entitySource**, **entityDestination**, relationshipType, *date* | **result** | Creates a new state for the source entity without a custom relationship of the given type.
-[graph.versioner.relationships.delete](#relationships-delete) | **entitySource**, **List<entityDestination>**, relationshipType, *date* | **result** | Creates a new state for the source entity without a custom relationships for each of the destination nodes of the given type.
+[graph.versioner.relationships.createTo](#relationships-createTo) | **entitySource**, **entityDestinations**, relationshipType, *{key:value,...}*, *date* | **relationship** | Creates a new state for the source entity connected to each of the R nodes of the destinations with a relationship of the given type.
+[graph.versioner.relationships.createFrom](#relationships-createFrom) | **entitySources**, **entityDestination**, relationshipType, *{key:value,...}*, *date* | **relationship** | Creates a new state for each of the source entities connected to the R nodes of the destination with a relationship of the given type.
+[graph.versioner.relationships.delete](#relationships-delete) | **entitySource**, **entityDestinations**, relationshipType, *date* | **result** | Creates a new state for the source entity without a custom relationships for each of the destination nodes of the given type.
 
 ## init
 
@@ -712,6 +712,108 @@ result | Boolean
 ```cypher
 MATCH (person:Entity:Person), (city:Entity:City) WITH person, city CALL graph.versioner.relationship.delete(person, city, 'LIVES_IN') YIELD result RETURN result
 ```
+
+## relationships createTo
+
+This procedure is used to connect one Graph Versioner entitiy to many Graph Versioner entities with a versioned Neo4j relationship.
+This method creates a new `CURRENT` state for the Entity, and connects it with the R state of the destination Entities.
+The procedure will return the newly created relationships.
+If date is given , `date` of the new state including the relationship will be the specified one.
+
+### Details
+
+#### Name
+
+`graph.versioner.relationships.createTo`
+
+#### Parameters
+
+name | necessity | details
+---- | --------- | -------
+`entitySource`, | mandatory | The source entity, where the new state will be created.
+`entityDestinations` | mandatory | A list of the destination entities, containing the `R` node where the new relationship will point.
+`{key:value,...}` | optional | A Map representing the relationship properties.
+`date` | optional | The LocalDateTime of creation of the relationship.
+
+#### Return value
+
+name | type
+---- | ----
+relationship | Relationship
+
+### Example call
+
+```cypher
+MATCH (person:Entity:Person), (city1:Entity:City), (city2:Entity:City) WITH person, [city1, city2] AS cities CALL graph.versioner.relationships.createTo(person, cities) YIELD relationship RETURN relationship
+```
+
+## relationships createFrom
+
+This procedure is used to connect many Graph Versioner entities to one Graph Versioner entity with a versioned Neo4j relationship.
+This method creates a new `CURRENT` state for the Entities, and connects it with the R state of the destination Entity.
+The procedure will return the newly created relationships.
+If date is given , `date` of the new state including the relationship will be the specified one.
+
+### Details
+
+#### Name
+
+`graph.versioner.relationships.createFrom`
+
+#### Parameters
+
+name | necessity | details
+---- | --------- | -------
+`entitySources`, | mandatory | A list of the source entities, where the new state will be created.
+`entityDestination` | mandatory | The destination entity, containing the `R` node where the new relationship will point.
+`{key:value,...}` | optional | A Map representing the relationship properties.
+`date` | optional | The LocalDateTime of creation of the relationship.
+
+#### Return value
+
+name | type
+---- | ----
+relationship | Relationship
+
+### Example call
+
+```cypher
+MATCH (person1:Entity:Person), (person2:Entity:Person), (city:Entity:City) WITH [person1, person2] AS persons, city CALL graph.versioner.relationships.createFrom(persons, city) YIELD relationship RETURN relationship
+```
+
+## relationships delete
+
+This procedure is used to delete relationships from a Graph Versioner entity.
+This method creates a new `CURRENT` state for the Entity, and removes the previous custom relationships of the given type.
+The procedure will return `true` if the relationship was deleted successfully, `false` otherwise.
+If date is given , `date` of the new state including the relationship will be the specified one.
+
+### Details
+
+#### Name
+
+`graph.versioner.relationships.delete`
+
+#### Parameters
+
+name | necessity | details
+---- | --------- | -------
+`entitySource`, | mandatory | The source entity, where the new state will be created.
+`relationshipTypes` | mandatory | A list of relationship types that must be deleted.
+`date` | optional | The LocalDateTime of creation of the relationship.
+
+#### Return value
+
+name | type
+---- | ----
+result | Boolean
+
+### Example call
+
+```cypher
+MATCH (person:Entity:Person) WITH person, ["LIVES_IN", "MARRIED_WITH"] as types CALL graph.versioner.relationships.delete(person, types) YIELD result RETURN result
+```
+
 
 # Feedback
 

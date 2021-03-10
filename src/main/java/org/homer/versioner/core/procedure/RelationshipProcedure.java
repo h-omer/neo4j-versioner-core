@@ -28,8 +28,8 @@ import static org.homer.versioner.core.Utility.*;
  */
 public class RelationshipProcedure extends CoreProcedure {
     @Procedure(value = "graph.versioner.relationships.createTo", mode = Mode.WRITE)
-    @Description("graph.versioner.relationships.create(entityA, entitiesB, relProps, date) - Create multiple relationships from entitySource to each of the entityDestinations with the given type and/or properties for the specified date.  The relationship 'versionerLabel' along with properties for each relationship can be passed in via 'relProps' a default label ('LABEL_UNDEFINED') is assigned to relationships that are not supplied with a 'versionerLabel' attribute in the props")
-    public Stream<RelationshipOutput> relationshipsCreate(
+    @Description("graph.versioner.relationships.createTo(entityA, entitiesB, relProps, date) - Create multiple relationships from entitySource to each of the entityDestinations with the given type and/or properties for the specified date.  The relationship 'versionerLabel' along with properties for each relationship can be passed in via 'relProps' a default label ('LABEL_UNDEFINED') is assigned to relationships that are not supplied with a 'versionerLabel' attribute in the props")
+    public Stream<RelationshipOutput> relationshipsCreateTo(
             @Name("entitySource") Node entitySource,
             @Name("entityDestinations") List<Node> entityDestinations,
             @Name(value = "relProps", defaultValue = "[{}]") List<Map<String, Object>> relProps,
@@ -37,7 +37,7 @@ public class RelationshipProcedure extends CoreProcedure {
 
         Optional<Node> sourceCurrentState = createNewSourceState(entitySource, defaultToNow(date));
         isEntityOrThrowException(entitySource);
-        entityDestinations.sort(Comparator.comparing(o -> o.getProperty("id").toString()));
+        entityDestinations.sort(Comparator.comparing(Node::getId));
 
         Stream<RelationshipOutput> relationshipOutputStream = getRelationshipOutputStream(entityDestinations, relProps, sourceCurrentState);
         return relationshipOutputStream;
@@ -51,7 +51,7 @@ public class RelationshipProcedure extends CoreProcedure {
             @Name(value = "relProps", defaultValue = "[{}]") List<Map<String, Object>> relProps,
             @Name(value = "date", defaultValue = "null") LocalDateTime date) {
 
-        entitySources.sort(Comparator.comparing(o -> o.getProperty("id").toString()));
+        entitySources.sort(Comparator.comparing(Node::getId));
         entitySources.stream().map(node -> {
             log.info("orderedNodes:  " + node.getProperty("id").toString());
             return null;
