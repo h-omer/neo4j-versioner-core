@@ -137,18 +137,18 @@ public class RelationshipProcedure extends CoreProcedure {
 
         Optional<Node> sourceCurrentState = getCurrentState(entitySource);
         entityDestinations.stream().map((entityDestination) -> {
-            return getBooleanOutputStream(entitySource, type, sourceCurrentState, entityDestination);
+            return getBooleanOutputStream(entitySource, type, sourceCurrentState, entityDestination, date);
         });
         return Stream.of(new BooleanOutput(Boolean.FALSE));
     }
 
-    private Stream<BooleanOutput> getBooleanOutputStream(@Name("entitySource") Node entitySource, @Name("type") String type, Optional<Node> sourceCurrentState, Node entityDestination) {
+    private Stream<BooleanOutput> getBooleanOutputStream(@Name("entitySource") Node entitySource, @Name("type") String type, Optional<Node> sourceCurrentState, Node entityDestination, LocalDateTime date) {
         Optional<Node> destinationRNode = getRNode(entityDestination);
         Update updateProcedure = new UpdateBuilder().withLog(log).withTransaction(transaction).build().orElseThrow(() -> new VersionerCoreException("Unable to initialize update procedure"));
 
         if (sourceCurrentState.isPresent() && destinationRNode.isPresent()) {
             final long destId = destinationRNode.get().getId();
-            updateProcedure.update(entitySource, sourceCurrentState.get().getAllProperties(), "", null);
+            updateProcedure.update(entitySource, sourceCurrentState.get().getAllProperties(), "", date);
             getCurrentRelationship(entitySource).ifPresent(rel -> rel.getEndNode().getRelationships(Direction.OUTGOING, RelationshipType.withName(type)).forEach(rel2 -> {
                 if (rel2.getEndNode().getId() == destId) {
                     rel2.delete();
@@ -175,7 +175,7 @@ public class RelationshipProcedure extends CoreProcedure {
         }
 
         Optional<Node> sourceCurrentState = getCurrentState(entitySource);
-        return getBooleanOutputStream(entitySource, type, sourceCurrentState, entityDestination);
+        return getBooleanOutputStream(entitySource, type, sourceCurrentState, entityDestination, date);
     }
 
     static Relationship createRelationship(Node source, Node destination, String type, Map<String, Object> relProps) {
