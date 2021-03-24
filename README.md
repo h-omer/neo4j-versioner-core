@@ -12,6 +12,13 @@ Apache License 2.0
 2. Put the downloaded jar file into `$NEO4J_HOME/plugins` folder;
 3. Start/Restart Neo4j.
 
+## Version Compatibility Matrix
+
+Versioner version | Neo4j version
+---- | ----------
+2.x.x | 3.5.x
+4.2.x | 4.2.x
+
 ## About
 
 Neo4j Versioner Core has been developed by [Alberto D'Este](https://github.com/albertodeste) and [Marco Falcier](https://github.com/mfalcier).
