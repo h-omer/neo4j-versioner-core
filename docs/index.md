@@ -58,7 +58,7 @@ Neo4j procedure documentation can also be found using `CALL dbms.procedures()`.
 If you want to use Neo4j Versioner Core procedures on your procedures/functions you simply create a new instance:
 
 ```java
-Optional<Init> result = new InitBuilder().withDb(db).withLog(log).build();
+Optional<Init> result = new InitBuilder().withTransaction(transaction).withLog(log).build();
 result.ifPresent(a -> a.init("EntityLabel", entityProps, stateProps, additionalLabel, date));
 ```
 
