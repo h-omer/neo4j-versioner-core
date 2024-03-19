@@ -7,8 +7,10 @@ version = '4.2.4'
 
 description = """Neo4j Procedures for Graph Versioning"""
 
-sourceCompatibility = 11
-targetCompatibility = 11
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
 
 tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'
@@ -26,10 +28,13 @@ repositories {
 
 dependencies {
     implementation group: 'org.neo4j', name: 'neo4j', version: '4.2.4'
-    testImplementation group: 'junit', name: 'junit', version: '4.12'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.16.0'
     testImplementation group: 'org.hamcrest', name: 'hamcrest-junit', version: '2.0.0.0'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '2.13.0'
     testImplementation group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.2.3'
     testImplementation group: 'org.neo4j.test', name: 'neo4j-harness', version: '4.2.4'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
 }
